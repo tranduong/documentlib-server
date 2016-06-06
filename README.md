@@ -89,6 +89,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 ### Supervisor of the Project
+Professor Mohamed Quafafou (http://www.quafafou.com)
 
 ### Contributions from Colleagues
 
