@@ -1,49 +1,8 @@
 # Scientific Document - Personalized Recommendation System (SDPRS)
 ( A product of Research Topic : Text Data Analytics – Storage and personnalized Recommendation )
-The description below is the context of the work which were done by Tran Binh Duong, a researcher in LSIS - Laboratory of Sciences of the Information and Systems.
-The work is guided and supervised by Professor Mohamed Quafafou, who interests in Theory and Application of Data Mining and Analytics and leads Data, information and 
+The work was done by Tran Binh Duong, a researcher in LSIS - Laboratory of Sciences of the Information and Systems.
+He was guided and supervised by Professor Mohamed Quafafou, who interests in Theory and Application of Data Mining and Analytics and leads Data, information and 
 content management group ( DiMAG ) in LSIS.
-Natural Language Processing (NLP) has many tasks like text processing, automatic summarization, machine translation, named entity recognition (NER), 
-natural language understanding, etc. [1]. Its techniques and methods have been used in many application fields like information retrieval (IR), 
-information extraction (IE), text-mining etc. In the internship, we consider the Text mining field, which is concerned with information learning 
-from preprocessed text (i.e. identified part of speech, or stemmed word, or named entity recognition etc.). Consequently, heterogeneous information 
-is extracted from texts, i.e., geo-localized information, graph of entities, topics hidden in texts and represented as probabilistic distributions, etc. 
-Moreover, such data is generally enriched by semantic information collected from different data sources like Wikipedia, LinkedIn or more generally from 
-social networks. Thus, rapidly such data became very large, i.e., Big Data, and crucial problem arises that is its storage to allow an efficient automatic 
-processing [2].
-However, when the data grows to an increasingly large container of resources and information, then we have to take the following problem into account: 
-the user is overwhelmed by information and it might result difficult to find the right path while navigating across the resources. In other words, we 
-face new problem: overload information. Hence, predicting, suggesting, and filtering items for the users would be helpful to reduce the numerous of data. 
-These features become family of such kind system called: recommendation systems [3].
-We leverage text mining text with efficient storage to allow the exploration of scientific paper collections to rapid access to a summary, author names, 
-list of given papers, etc. Moreover, we consider also personalized services providing, to each user, the information matching its own interests like 
-key papers, research topics, authors, events, etc.
-In summary, the focused context is text data analytics focusing, more particularly, on the following two dimensions: storage and personalized recommendation.
-
-During the last years, we have developed a Text Analytics API (NLPapi), which is currently used by several researchers. We have also proposed different 
-Latent Variables Models API (LVMapi) to learn models that perform different taks as the classification. Both NLP and LVMapi APIs are currently used to 
-offer NLP services for our scientific papers mining project. Thus, the trainee will participates to this project focusing on the following objectives:
-•	Storage: In order to store a big corpus of textual documents, we need first to define an efficient storage solution considering both structured data 
-(SQL-like) and NoSQL data (documents, graphs, etc.). In fact, the NLPapi allows the extraction of heterogeneous data from documents, which must be stored 
-according to both its nature and relations it represents. This storage must allows and efficient geo-localized and personalized querying, search and 
-recommendation.
-
-•	Personalized recommendation: In order to perform this task, we firstly define the notion of user’s context including his profile including 
-his main research interests and all information related to his publications like co-authors, conferences, etc. 
-Secondly, we continually update users profiles by analyzing the documents corpus and evaluating their interest for a given user. 
-Finally, a profile based recommendation method will be proposed and evaluated on real world data.
-
-Furthermore, a human based evaluation of the recommendation method will be adopted, as different users will give their feedback and more particularly, 
-their rating of the proposed recommendations.
-
-In the project, the researcher will participate to the research and development conduced by a research group to mine scientific paper collections. 
-More particularly, he will uses the following different methods and techniques: 
-•	Storage: we will consider mainly different solutions for storage of unstructured data, like MongaDB [4] and those developed by apache foundation, 
-for example, Solr [5], ElasticSearch [6], Cassandra [7], Giraph [8], etc.
-•	Personalized recommendation:  We consider a personalized analysis using the LVMapi services to analyse the contextual data related to a given user 
-profile. More particularly, we will use LDA-like models [9], as CorrLDA [10], Loc-LDA [11], DTM [12], HpDP [13], etc. Doing so, we continually and 
-interactively update user profiles to improve both search and recommendations over time.
-
 The Scientific Document - Personalized Recommendation System is the product which will be developed during the stage of the researcher.
 
 ## Getting Started
@@ -138,8 +97,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * [Leonel Samayoa](https://github.com/lsamayoa)
 * [Mathew Goldsborough](https://github.com/mgoldsborough)
 * [Ricardo Pascua Jr](https://github.com/rdpascua)
-
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
 
