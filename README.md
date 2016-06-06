@@ -54,7 +54,8 @@ $ bower install Gulp
 #### Client-module development
 Continue developing the client further by editing the `src` directory. With the `gulp` command, any file changes made will automatically be compiled into the specific location within the `dist` directory.
 
-#### Server-module installation
+#### Server-module development
+Start from server.js, you can modify and implement any others feature if you want.
 
 #### Modules & Packages
 ##### Client-module packages
@@ -79,7 +80,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Tran Binh Duong** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Tran Binh Duong** - *Initial work* - [TranDuong](https://github.com/tranduong)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
