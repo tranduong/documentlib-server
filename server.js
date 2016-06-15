@@ -1,7 +1,3 @@
-process.env.ELASTIC_SEARCH_URL  = "http://127.0.0.1:9200/";
-process.env.MONGO_URL  = "mongodb://127.0.0.1:27017/documentlib";
-process.env.JWT_SECRET = "ThePersonalizedScientificDocumentLibraryManagementSystem";
-
 // Required Modules
 var express    = require("express");
 var morgan     = require("morgan");
@@ -10,6 +6,8 @@ var bodyParser = require("body-parser");
 var mongoose   = require("mongoose");
 var path 	   = require('path');
 var randToken  = require('rand-token');
+
+var config	   = require('./config/config');
 
 var datetime   = new Date();
 var accessedTime = datetime.toJSON();
@@ -32,7 +30,7 @@ mongoose.connection.on('error', function (err) {
 });
 
 // Connect to DB
-mongoose.connect(process.env.MONGO_URL);
+mongoose.connect(config.database.URL);
 // Document Service functions
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -64,7 +62,7 @@ app.post('/authen', function(req, res) {
 				console.log("User authenticated: " + user);
 				user.lastaccessed = accessedTime;
 				user.token = ""; // clear last token
-				user.token = randToken.generate(16) + "" + user._id;//jwt.sign(user.lastaccessed, process.env.JWT_SECRET);
+				user.token = randToken.generate(16) + "" + user._id;
 				user.save(function(err, user1) {
 					if(err)
 					{
@@ -117,7 +115,7 @@ app.post('/signup', function(req, res) {
 				userModel.lastaccessed 	= accessedTime;
 				userModel.isDeleted 	= false;
                 userModel.save(function(err, user) {
-                    user.token = randToken.generate(16) + "" + user._id;//jwt.sign(user.lastaccessed, process.env.JWT_SECRET);
+                    user.token = randToken.generate(16) + "" + user._id;
                     user.save(function(err, user1) {
 						if(err)
 						{
@@ -200,6 +198,9 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 				{
 					console.log("title = " + fields.title);
 					console.log("authors = " + fields.authors);
+					console.log("=============USER==============");
+					console.log(user);
+					console.log("===============================");
 					var docModel = new Document();
 					docModel.uploadedPath  = strFilePath;
 					docModel.fileName 	   = strFileName;
@@ -209,8 +210,11 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 					docModel.uploadedUser  = user.email;
 					docModel.abstract  	   = fields.abstract;
 					docModel.publisher	   = fields.publisher;
-					docModel.publishedDate = fields.publishedDate;					
+					docModel.publishedDate = fields.publishedDate;
+					docModel.category	   = fields.category;
+					docModel.privacy   	   = fields.privacy;
 					docModel.isDeleted	   = false;
+					console.log("1. demomode: " + fields.demomode);
 					docModel.save(function(err, doc1) {
 						if (err)
 						{
@@ -236,8 +240,8 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 									console.log("The information of the Uploaded document has been stored in the database");
 									// Upload the document to elastic server
 									var elasticConnector = new Elastic();
-									
-									elasticConnector.uploadDocument(doc1, function(success){
+									console.log("2. demomode: " + fields.demomode);
+									elasticConnector.uploadDocument(doc1, fields.demomode, user._id, function(success){
 										console.log("Elastic Server response : " + success );
 									}, function(err){
 										console.log("Elastic Server response : " + err );
@@ -327,61 +331,159 @@ app.get('/mydocs', ensureAuthorized, function(req,res){
 		}		
 	});
 });
-
-app.post('/document', ensureAuthorized, function(req,res){
+// DOING FIX with UPDATING
+app.post('/updatedocument', ensureAuthorized, function(req,res){
 	//console.log("update my document information: ");
 	//console.log(req.body);
-	Document.update({_id: req.body._id}, req.body, function(err, affected, resp) {	  
+	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
-		{
-			//console.log("error :" + err);
+		{			
 			res.json({
 				type: false,
-				data: err
-			})
+				data: "Error occured: " + err
+			}); 
+			console.log("Get my documents : " + err);
 		}
 		else
 		{
-			// Upload the document to elastic server
-			var elasticConnector = new Elastic();
-			var doc = req.body;
-			elasticConnector.updateDocument(doc, function(success){
-				console.log("Elastic Server response : " + success );
-			}, function(err){
-				console.log("Elastic Server response : " + err );
-			});
-			
-			res.json({
-				type: true,
-				data: resp
-			})
-			//console.log("update document successfully");
+			if ( user )
+			{	
+				Document.update({_id: req.body._id}, req.body, function(err, affected, resp) {	  
+					if (err)
+					{
+						//console.log("error :" + err);
+						res.json({
+							type: false,
+							data: err
+						});
+					}
+					else
+					{
+						// Update the document in elastic server
+						var elasticConnector = new Elastic();
+						var doc = req.body;
+						elasticConnector.updateDocument(doc, user._id, function(success){
+							console.log("Elastic Server response : " + success );
+						}, function(err){
+							console.log("Elastic Server response : " + err );
+						});
+						
+						res.json({
+							type: true,
+							data: resp
+						})
+						//console.log("update document successfully");
+					}
+				});
+			}
 		}
 	});
 });
 
 app.post('/deletedocument', ensureAuthorized, function(req,res){	
 	console.log("delete one of my document");
-	Document.update({_id: req.body._id}, {isDeleted: true}, function(err, affected, resp) {	  
+	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
-		{
-			console.log("error :" + err);
+		{			
 			res.json({
 				type: false,
-				data: err
-			})
+				data: "Error occured: " + err
+			}); 
+			console.log("Get my documents : " + err);
 		}
 		else
 		{
-			res.json({
-				type: true,
-				data: resp
-			})
-			console.log("deleted document successfully");
+			if ( user )
+			{	
+				Document.update({_id: req.body._id}, {isDeleted: true}, function(err, affected, resp) {	
+			/* 		console.log("Delete function");
+					console.log("==================================");
+					console.log("Error:");
+					console.log(err);
+					console.log("Affected:");
+					console.log(affected);
+					console.log("Response:");
+					console.log(resp);
+					console.log("=================================="); */
+					if (err)
+					{
+						console.log("error :" + err);
+						res.json({
+							type: false,
+							data: err
+						})
+					}
+					else
+					{
+						Document.findOne({_id: req.body._id, isDeleted: true}, function(err, doc) {
+							if (err)
+							{
+								console.log("error :" + err);
+								res.json({
+									type: false,
+									data: err
+								})
+							}
+							else
+							{
+								// Delete the content in search engine
+								var elasticConnector = new Elastic();
+								elasticConnector.deleteDocument(doc.privacy, doc._id, user._id, function(success){
+									console.log("Elastic Server response : " + success );
+								}, function(err){
+									console.log("Elastic Server response : " + err );
+								});
+							}
+						});
+						
+						res.json({
+							type: true,
+							data: resp
+						})
+						console.log("deleted document successfully");
+					}
+				});
+			}
 		}
 	});
-	
-	
+});
+
+app.get('/stats', ensureAuthorized, function(req,res){
+	var stats = {};
+	// Collect server information : documents, users, views, downloads, likes, reading, shared
+	User.count({}, function( err, count){
+		stats.users = count;
+		console.log( "Number of users:", count );
+		Document.count({},function(err, count){
+			stats.documents = count;
+			console.log( "Number of documents:", count );
+			
+			// Collect my information: upload documents, views, downloads, likes, readings, shared from me
+			User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
+				if (err)
+				{			
+					res.json({
+						type: false,
+						data: "Error occured: " + err
+					}); 
+					console.log("Get my documents : " + err);
+				}
+				else
+				{
+					if (user)
+					{
+						stats.mydocs = user.uploadedDocs.length;
+						console.log("===============STATISTICS===============");
+						//console.log(user);
+						console.log(stats);
+						console.log("========================================");
+						res.json(stats);
+					}
+					
+				}
+			});
+		});
+	});
 });
 
 // others utility functions

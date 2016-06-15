@@ -12,6 +12,8 @@ var DocumentSchema   = new schema({
 	publisher: String,
     publishedDate: String,
 	abstract: String,
+	category: String,
+	privacy: String,
 	isDeleted: Boolean
 },{ collection : 'Document' });
  

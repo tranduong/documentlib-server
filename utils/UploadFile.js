@@ -4,6 +4,7 @@ var path = require('path');
 var formidable = require('formidable');
 // Create a token generator with the default settings:
 var randtoken = require('rand-token');
+var mkdirp 	  = require('mkdirp');
 
 function UploadFile() {
 
@@ -21,12 +22,22 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
     var uploadedFileName = "";
 	// Generate a 16 character alpha-numeric token:
     var token = randtoken.generate(24);
+	var date = new Date();
+	var year  = date.getYear() + 1900;
+	var month = date.getMonth() + 1;
 	// store all uploads in the /uploads directory
-	form.uploadDir = path.join(__dirname, '../upload/' + token); // change when you change
+	form.uploadDir = path.join(__dirname, '../upload/' + year + '/' + month + '/' + token); // change when you change
 
 	if (!fs.existsSync(form.uploadDir)){
-		fs.mkdirSync(form.uploadDir);
+		console.log("Start create the folder path : " + form.uploadDir);
+		mkdirp(form.uploadDir, function(err) { 
+			console.log("Can't create folder path");
+			console.log("=========================");
+			console.log(err);  // path exists unless there was an error
+			console.log("=========================");
+		}); // change from mkdirSync to a custom mkdirParent() - refer to the top of this source code file
 	}
+	
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name	
 	form.on('file', function(field, file) {		
@@ -84,8 +95,11 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 				console.log("updated path 1 = " + files.file.path);
 				// Make sure the callback is a function​
 				if (typeof generatedCallback === "function") {					
-					var relativePath = path.relative(__dirname + '../', filePathName);
+					var relativePath = path.relative(__dirname + '/../', filePathName);
 					console.log("path returned = " + relativePath);
+					console.log("==================FIELDS======================");
+					console.log(fields);
+					console.log("==============================================");
 					generatedCallback(files.file.name, relativePath, fields);
 				}
 			} else if(err.code === 'ENOENT') {				
@@ -93,8 +107,11 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 				console.log("updated path = " + filePathName);
 				// Make sure the callback is a function​
 				if (typeof generatedCallback === "function") {					
-					var relativePath = path.relative(__dirname + '../', filePathName);
+					var relativePath = path.relative(__dirname + '/../', filePathName);
 					console.log("path returned = " + relativePath);
+					console.log("==================FIELDS======================");
+					console.log(fields);
+					console.log("==============================================");
 					generatedCallback(files.file.name, relativePath, fields);
 				}				
 			} else {
@@ -106,7 +123,7 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 
 };
 
-// Reserved for the next improvement sprint
+/* // Reserved for the next improvement sprint
 uploader.uploadSSH = function(req,res, sshLocationPath, strHostname, strHostport, strUserName, strKeyPhrase, generatedCallback,successCallback, errCallback   ) {
 
 	var conn = new ssh2();
@@ -178,6 +195,6 @@ uploader.uploadSSH = function(req,res, sshLocationPath, strHostname, strHostport
 	);
     return;
 };
-
+ */
 module.exports = UploadFile;
 
