@@ -41,28 +41,29 @@ $ bower install Gulp
 3. Install the Bower dependencies: `bower install`.
 4. Run the gulp build task: `gulp build`.
 
-* *Note: angular-route, angular-breadcrumb, angular-utils-pagination are added in development, they might be lack.*
+*Note: angular-route, angular-breadcrumb, angular-utils-pagination are added in development, they might be lack.*
 
-* *If there is some errors occured and related to YYYYY.min.js files, you can try to install some lacking modules by bower as follow:*
+*If there is some errors occured and related to YYYYY.min.js files, you can try to install some lacking modules by bower as follow:*
 
-* *bower install -g --save bower install angular-route angular-breadcrumbangular-utils-pagination*
+*bower install -g --save bower install angular-route angular-breadcrumbangular-utils-pagination*
 
 5. Run the gulp default task: `gulp`. This will build any changes made automatically, and also run a live reload server on [http://localhost:8888](http://localhost:8888).
 
-* *Note: Ensure your preferred web server points towards the `dist` directory.*
+*Note: Ensure your preferred web server points towards the `dist` directory.*
 
 #### Server-module installation
 1. Clone the repository: `git clone https://github.com/tranduong/documentlib-server.git`
 2. Install the NodeJS dependencies: `npm install`.
 3. Run server by command : start_server ( to execute the built-in batch file start_server.bat )
-* *Note: If you use this command `node server.js`, the pdftotext module is not specified so that the textract module work improperly. In other OSs, please make sure that pdftotext module has been installed and work properly before executing the server *
 
-* *If there is some errors occured, please try to install shortage packages such as ssh2, textract by command : `npm install ssh2, textract`*
+*Note: If you use this command `node server.js`, the pdftotext module is not specified so that the textract module work improperly. In other OSs, please make sure that pdftotext module has been installed and work properly before executing the server *
 
-* *If you face with this error "js-bson: Failed to load c++ bson extension, using pure JS version", refer [this article](https://github.com/Automattic/mongoose/issues/2285) and [this artice] (http://stackoverflow.com/questions/29238424/error-in-npm-install-inspite-of-changing-the-file-bson/29714359#29714359)*
+*If there is some errors occured, please try to install shortage packages such as ssh2, textract by command : `npm install ssh2, textract`*
 
-* *Then use follow command: "npm config set python python2.7" & "npm install" (make sure that all installed module has been removed or clean. If you are using Windows, make sure that your system had been installed Visual Studio and Python)*
-* *If it is still not solved, you should modify the content of index.js file in  ".\node_modules\mongoose\node_modules\mongodb\node_modules\bson\ext" folder from "bson = require('../build/Release/bson'); " to "bson = require('bson'); "" *
+*If you face with this error "js-bson: Failed to load c++ bson extension, using pure JS version", refer [this article](https://github.com/Automattic/mongoose/issues/2285) and [this artice] (http://stackoverflow.com/questions/29238424/error-in-npm-install-inspite-of-changing-the-file-bson/29714359#29714359)*
+
+*Then use follow command: "npm config set python python2.7" & "npm install" (make sure that all installed module has been removed or clean. If you are using Windows, make sure that your system had been installed Visual Studio and Python)*
+*If it is still not solved, you should modify the content of index.js file in  ".\node_modules\mongoose\node_modules\mongodb\node_modules\bson\ext" folder from "bson = require('../build/Release/bson'); " to "bson = require('bson'); "" *
 
 #### Integrate them with MongoDB and Elastic Search
 When you assure that Client module and Server module are started properly (without error at compiled time), you will turn on a whole system and integrate them step by step:
@@ -76,18 +77,20 @@ When you assure that Client module and Server module are started properly (witho
 
 #### Configuration Server and Client modules to point to other servers
 1. To config the server, open the 'config.js' in folder 'config'
-* Change the URL to point to your mongo database server's address
+
+*Change the URL to point to your mongo database server's address
 config.database.URL				= process.env.MONGO_URL || "mongodb://127.0.0.1:27017/documentlib";
 
-* Change the URL to point to your elastic search engine server's address
+*Change the URL to point to your elastic search engine server's address
 config.searchengine.HOST		= "localhost";
 config.searchengine.PORT		= 9200;
 
 2. To config the client, open the 'config.js' in folder 'src\js\config'
-* Change the DEPLOYED_HOST's URL to point to your service server's address (server module's host and port)
+
+*Change the DEPLOYED_HOST's URL to point to your service server's address (server module's host and port)
 .constant("DEPLOYED_HOST", {"URL": "http://localhost:3001"}) // Change when you have a new 
 
-* Change the SEARCH_HOST's URL to point to your elastic search engine server's address
+*Change the SEARCH_HOST's URL to point to your elastic search engine server's address
 .constant("SEARCH_HOST", {"URL": "http://localhost:9200", "MULTI_API" : "_msearch", "SINGLE_API" : "_search"}) // Change when you have a new 
 
 ### Development
