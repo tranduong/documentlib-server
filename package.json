@@ -14,6 +14,7 @@
     "formidable": "^1.0.17",
     "java": "^0.7.2",
     "jsonwebtoken": "0.4.0",
+    "mkdirp": "^0.5.1",
     "mongoose": "^3.8.8",
     "morgan": "^1.7.0",
     "node-java": "^1.0.1",
