@@ -67,12 +67,28 @@ $ bower install Gulp
 #### Integrate them with MongoDB and Elastic Search
 When you assure that Client module and Server module are started properly (without error at compiled time), you will turn on a whole system and integrate them step by step:
 
-1. Start the mongodb server, then you will have to configure the server module to point to this database server in the next step.
-2. Start the elasticsearch server, you will also need to define the pointer to this server on the server module.
-3. Start the file server, in case you store the data outside the service server node.
+1. Start the mongodb server, then you will have to configure the server module to point to this database server in the next step. (see Configuration section)
+2. Start the elasticsearch server, you will also need to define the pointer to this server on the server module. (see Configuration section)
+3. Start the file server, in case you store the data outside the service server node. ( To be determined )
 4. Start the (service) server module
-5. Start the client module
+5. Configure the client module to point to the search engine server for searchable support (see Configuration section)
+6. Start the client module
 
+#### Configuration Server and Client modules to point to other servers
+1. To config the server, open the 'config.js' in folder 'config'
+* Change the URL to point to your mongo database server's address
+config.database.URL				= process.env.MONGO_URL || "mongodb://127.0.0.1:27017/documentlib";
+
+* Change the URL to point to your elastic search engine server's address
+config.searchengine.HOST		= "localhost";
+config.searchengine.PORT		= 9200;
+
+2. To config the client, open the 'config.js' in folder 'src\js\config'
+* Change the DEPLOYED_HOST's URL to point to your service server's address (server module's host and port)
+.constant("DEPLOYED_HOST", {"URL": "http://localhost:3001"}) // Change when you have a new 
+
+* Change the SEARCH_HOST's URL to point to your elastic search engine server's address
+.constant("SEARCH_HOST", {"URL": "http://localhost:9200", "MULTI_API" : "_msearch", "SINGLE_API" : "_search"}) // Change when you have a new 
 
 ### Development
 #### Client-module development
