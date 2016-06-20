@@ -123,6 +123,13 @@ Deployment
 -----------
 
 Add additional notes about how to deploy this on a live system
+1. Initialize Database structure in MongoDB, you need to create 'documentlib' database by using 'use documentlib' in mongo console. Then create 'User', 'Document' ... collections
+2. Assign permission to write files on file servers or 'upload' folder on the server by command 'chmod -R 777 <folder_name>'
+3. Change search engine configuration to support CORS access:
+	3.1. find the location of 'elasticsearch.yml', Eg: /etc/elasticsearch/elasticsearch.yml  
+	3.2. edit the config file 'elasticsearch.yml' by adding two setting
+		3.2.1. enable cross-domain accessing : 'http.cors.enabled: true'
+		3.2.2. filter localhost domain only : 'http.cors.allow-origin: /https?:\/\/localhost(:[0-9]+)?/
 
 Contributing
 -----------
