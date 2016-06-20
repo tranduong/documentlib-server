@@ -41,9 +41,10 @@ For example:
 #### Client-module installation
 1. Clone the repository:  `git clone https://github.com/tranduong/documentlib-client.git`
 2. Install the NodeJS dependencies:  `npm install`.
+	*If there is an error occured with message ENOENT, you should install 'nodejs-legacy' package by command : 'apt-get install nodejs-legacy'. After that, you should remove all installed npm modules to re-install again by command : 'rm -rf ~/.npm'*  
 3. Install the Bower dependencies:  `bower install`.
 4. Run the gulp build task:  `gulp build`.
-
+	
 	**Note:** angular-route, angular-breadcrumb, angular-utils-pagination are added in development, they might be lack.
 	
 	* If there is some errors occured and related to YYYYY.min.js files, you can try to install some lacking modules by bower as follow: 
