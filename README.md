@@ -72,6 +72,7 @@ For example:
 When you assure that Client module and Server module are started properly (without error at compiled time), you will turn on a whole system and integrate them step by step:
 
 1. Start the mongodb server, then you will have to configure the server module to point to this database server in the next step. (see Configuration section)
+	*If you can't connect to mongodb via localhost (or 127.0.0.1) in ubuntu, refer to [this page](http://stackoverflow.com/questions/13312358/mongo-couldnt-connect-to-server-127-0-0-127017) to solve the problem by removing `mongod.lock` file in '/var/lib/mongodb/' folder*
 2. Start the elasticsearch server, you will also need to define the pointer to this server on the server module. (see Configuration section)
 3. Start the file server, in case you store the data outside the service server node. ( To be determined )
 4. Start the (service) server module
