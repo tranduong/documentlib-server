@@ -7,6 +7,9 @@ var mongoose   = require("mongoose");
 var path 	   = require('path');
 var randToken  = require('rand-token');
 
+// test tika
+var tika	   = require('tika');
+
 var config	   = require('./config/config');
 
 var datetime   = new Date();
@@ -486,6 +489,15 @@ app.get('/stats', ensureAuthorized, function(req,res){
 	});
 });
 
+
+app.get('/testtika',function(req,res){
+	console.log("TESTING");
+	tika.extract('E:/git/master_projects/server/documentlib/upload/2016/6/4KedMSVITODwGUbLcciQCOnX/Report_CHU.PDF', function(err, text, meta) {
+		console.log(text); // Logs 'Just some text'.
+		console.log(meta); // Logs 'LibreOffice 4.1'.
+	});
+	res.json('{"result":"Success"}');
+});
 // others utility functions
 process.on('uncaughtException', function(err) {
     console.log(err);
