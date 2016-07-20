@@ -1,5 +1,5 @@
 var fs = require('fs');
-var ssh2 = require('ssh2');
+//var ssh2 = require('ssh2');
 var path = require('path');
 var formidable = require('formidable');
 // Create a token generator with the default settings:

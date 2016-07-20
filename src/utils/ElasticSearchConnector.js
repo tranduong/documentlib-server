@@ -11,7 +11,17 @@ function ElasticSearchConnnector() {
 
 var elastic = ElasticSearchConnnector.prototype;
 
-elastic.cloneIndexingData = function(doc, pages) 
+
+elastic.cloneUserIndexingData = function(user) 
+{
+	var indexingData = {};
+	indexingData.id			= user._id;
+	indexingData.username 	= user.username;
+	indexingData.email 		= user.email;
+	return indexingData;
+}
+
+elastic.cloneDocumentIndexingData = function(doc, pages) 
 {
 	var indexingData = {};
 	indexingData.id			   = doc._id;
@@ -29,7 +39,7 @@ elastic.cloneIndexingData = function(doc, pages)
 	return indexingData;
 }
 
-elastic.cloneUpdatedData = function(doc) 
+elastic.cloneDocumentUpdatedData = function(doc) 
 {
 	var indexingData = {};
 	indexingData.authors	   = doc.authors;
@@ -129,7 +139,7 @@ elastic.uploadDocument = function(doc, mode, userid, successCallback, errorCallb
 				return 
 			}		
 			//console.dir(pages);
-			var cloneObject = elastic.cloneIndexingData(doc, pages);
+			var cloneObject = elastic.cloneDocumentIndexingData(doc, pages);
 			//console.log(cloneObject);
 			var data = JSON.stringify(cloneObject);
 			//console.log(data);
@@ -165,7 +175,7 @@ elastic.uploadDocument = function(doc, mode, userid, successCallback, errorCallb
 elastic.updateDocument = function(doc, userid, successCallback, errorCallback){
 	// Support for selected strategy only - demomode = 1
 	
-	var cloneObject = elastic.cloneUpdatedData(doc);
+	var cloneObject = elastic.cloneDocumentUpdatedData(doc);
 	//console.log(cloneObject);
 	var data = '{ "doc" : ' + JSON.stringify(cloneObject) + ' }';
 	//console.log(data);
@@ -201,9 +211,7 @@ elastic.updateDocument = function(doc, userid, successCallback, errorCallback){
 		})
 	});
 	httpreq.write(data);
-	httpreq.end();	   
-	
- 
+	httpreq.end();
 }
 
 elastic.deleteDocument = function(privacy, document_id, userid, successCallback, errorCallback){
@@ -239,5 +247,84 @@ elastic.deleteDocument = function(privacy, document_id, userid, successCallback,
 	// No body data
 	httpreq.end();	   
 }
+
+// insert user to search engine
+elastic.insertUser = function(user, successCallback, errorCallback)
+{
+	var cloneObject = elastic.cloneUserIndexingData(user);
+	//console.log(cloneObject);
+	var data = JSON.stringify(cloneObject);
+	//console.log(data);
+	var options = {
+			host: config.searchengine.HOST,
+			port: config.searchengine.PORT,
+			path: '/doclib_main/User/' + cloneObject.id + '/_create',
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/x-www-form-urlencoded',
+			  'Content-Length': data.length
+		}};
+	
+	console.log(options);
+	var httpreq = http.request(options, function (response) {
+		response.setEncoding('utf8');
+		response.on('data', function (chunk) {
+			console.log("body: " + chunk);
+		});
+		response.on('end', function() {
+			console.log("response code:" + response.statusCode);
+			if ( response.statusCode == 201 )
+			{
+				if (typeof successCallback === "function") {						
+					successCallback(response.statusCode);
+				}
+			}
+			else{
+				if (typeof errorCallback === "function") {						
+					errorCallback(response.statusCode);
+				}
+			}
+		})
+	});
+	httpreq.write(data);
+	httpreq.end();	   
+}
+
+// delete user from search engine
+elastic.deleteUser = function()
+{
+	var options = {
+		host: config.searchengine.HOST,
+		port: config.searchengine.PORT,
+		path: '/doclib_main/User/' + cloneObject.id,
+		method: 'DELETE'
+	};
+	console.log("==========Delete User =========");
+	console.log(options);
+	var httpreq = http.request(options, function (response) {
+		response.setEncoding('utf8');
+		response.on('data', function (chunk) {
+			console.log("body: " + chunk);
+		});
+		response.on('end', function() {
+			console.log("response code:" + response.statusCode);
+			if ( response.statusCode == 200 )
+			{
+				if (typeof successCallback === "function") {						
+					successCallback(response.statusCode);
+				}
+			}
+			else{
+				if (typeof errorCallback === "function") {						
+					errorCallback(response.statusCode);
+				}
+			}
+		})
+	});
+	// No body data
+	httpreq.end();	  
+}
+
+// update user information in the search engine
 
 module.exports = ElasticSearchConnnector;
