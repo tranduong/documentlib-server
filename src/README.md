@@ -76,27 +76,31 @@ When you assure that Client module and Server module are started properly (witho
 	*If you can't connect to mongodb via localhost (or 127.0.0.1) in ubuntu, refer to [this page](http://stackoverflow.com/questions/13312358/mongo-couldnt-connect-to-server-127-0-0-127017) to solve the problem by removing `mongod.lock` file in '/var/lib/mongodb/' folder*
 2. Start the elasticsearch server, you will also need to define the pointer to this server on the server module. (see Configuration section)
 3. Start the file server, in case you store the data outside the service server node. ( To be determined )
-4. Start the (service) server module
-5. Configure the client module to point to the search engine server for searchable support (see Configuration section)
-6. Start the client module
+4. Start the Neo4J server, you will need to config the server module to point to the Neo4J server.
+5. Start the (service) server module
+6. Configure the client module to point to the search engine server for searchable support (see Configuration section)
+7. Start the client module
 
 #### Configuration Server and Client modules to point to other servers
 1. To config the server, open the 'config.js' in folder 'config'
 
 	* Change the URL to point to your mongo database server's address  
-		`config.database.URL= process.env.MONGO_URL || "mongodb://127.0.0.1:27017/documentlib"`;
+		`config.database.URL= process.env.MONGO_URL || "mongodb://<Your_Mongo_Server_IP>:<Your_Mongo_Server_Listening_Port>/documentlib"`;
 	
 	* Change the URL to point to your elastic search engine server's address  
-		`config.searchengine.HOST		= "localhost";`  
-		`config.searchengine.PORT		= 9200;`
+		`config.searchengine.HOST		= "<Your_Elastic_Search_Engine_IP_OR_HOSTNAME>";`  
+		`config.searchengine.PORT		= <Your_Elastic_Search_Engine_Listening_Port>;`
 		
+	* Change the URL to point to your Neo4J server's address :
+		`config.graphdb.URL				= process.env.NEO4J_URL || "http://<User_Name>:<Password>@<Your_Neo4J_Server_IP_OR_HOSTNAME>:<Your_Neo4J_Server_Listening_Port>/";`
+	
 2. To config the client, open the 'config.js' in folder 'src\js\config'  
 
 	* Change the DEPLOYED_HOST's URL to point to your service server's address (server module's host and port)  
-		`.constant("DEPLOYED_HOST", {"URL": "http://localhost:3001"}) // Change when you have a new`
+		`.constant("DEPLOYED_HOST", {"URL": "http://<YOUR_DOCUMENT_LIB_MODULE_SERVER_IP>:<YOUR_DOCUMENT_LIB_MODULE_SERVER_LISTENING_PORT>"}) // Change when you have a new`
 
 	* Change the SEARCH_HOST's URL to point to your elastic search engine server's address  
-		`.constant("SEARCH_HOST", {"URL": "http://localhost:9200", "MULTI_API" : "_msearch", "SINGLE_API" : "_search"}) // Change when you have a new `
+		`.constant("SEARCH_HOST", {"URL": "http://<Your_Elastic_Search_Engine_IP_OR_HOSTNAME>:<Your_Elastic_Search_Engine_Listening_Port>", "MULTI_API" : "_msearch", "SINGLE_API" : "_search"}) // Change when you have a new `
 
 
 ### Development
