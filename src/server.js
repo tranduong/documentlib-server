@@ -1,4 +1,5 @@
 // Required Modules
+var fs = require('fs');
 var express    = require("express");
 var morgan     = require("morgan");
 var bodyParser = require("body-parser");
@@ -6,6 +7,7 @@ var bodyParser = require("body-parser");
 var mongoose   = require("mongoose");
 var path 	   = require('path');
 var randToken  = require('rand-token');
+var mime = require('mime');
 
 // test tika
 //var tika	   = require('tika');
@@ -63,6 +65,38 @@ app.use(function(req, res, next) {
 
 app.use(express.static(__dirname));
 
+app.get('/view', function(req, res){
+  console.log("View action : ");
+  var filePath = req.query.p;
+  if ( filePath !== "undefined")
+  {
+	  var file = __dirname + "/" + filePath;
+
+	  var filename = path.basename(file);
+	  var mimetype = mime.lookup(file);
+
+	  var filestream = fs.createReadStream(file);
+	  filestream.pipe(res);
+  }
+});
+
+app.get('/download', function(req, res){
+  console.log("download action");
+  var filePath = req.query.p;
+  if ( filePath !== "undefined")
+  {
+	  var file = __dirname + "/" + filePath;
+
+	  var filename = path.basename(file);
+	  var mimetype = mime.lookup(file);
+
+	  res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+	  res.setHeader('Content-type', mimetype);
+
+	  var filestream = fs.createReadStream(file);
+	  filestream.pipe(res);
+  }
+});
 // Authentication Service functions
 app.post('/authen', function(req, res) {
     User.findOne({email: req.body.email, password: req.body.password, isDeleted: false},{password : 0}, function(err, user) {
@@ -310,6 +344,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 					docModel.uploadedDate  = (new Date()).toJSON();
 					docModel.uploadedUser  = user.email;
 					docModel.abstract  	   = fields.abstract;
+					docModel.keywords  	   = fields.keywords;
 					docModel.publisher	   = fields.publisher;
 					docModel.publishedDate = fields.publishedDate;
 					docModel.category	   = fields.category;
@@ -1551,6 +1586,12 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 	});
 	res.json('{"result":"Success"}');
 }); */
+
+app.post('/recommendTopN', ensureAuthorized,function(req,res){
+	console.log("Recommend Top N");
+	console.log(req.body);
+	
+});
 
 // others utility functions
 process.on('uncaughtException', function(err) {

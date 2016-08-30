@@ -26,7 +26,7 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 	var year  = date.getYear() + 1900;
 	var month = date.getMonth() + 1;
 	// store all uploads in the /uploads directory
-	form.uploadDir = path.join(__dirname, '../upload/' + year + '/' + month + '/' + token); // change when you change
+	form.uploadDir = path.join(__dirname, '../../upload/' + year + '/' + month + '/' + token); // change when you change
 
 	if (!fs.existsSync(form.uploadDir)){
 		console.log("Start create the folder path : " + form.uploadDir);
@@ -40,7 +40,7 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 	
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name	
-	form.on('file', function(field, file) {		
+	form.on('file', function(field, file) {	
 		// do nothing
 	});
 
@@ -95,7 +95,7 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 				console.log("updated path 1 = " + files.file.path);
 				// Make sure the callback is a function​
 				if (typeof generatedCallback === "function") {					
-					var relativePath = path.relative(__dirname + '/../', filePathName);
+					var relativePath = path.relative(__dirname + '/../../', filePathName);
 					console.log("path returned = " + relativePath);
 					console.log("==================FIELDS======================");
 					console.log(fields);
@@ -107,7 +107,7 @@ uploader.uploadSimple = function(req,res, generatedCallback, errCallback, succes
 				console.log("updated path = " + filePathName);
 				// Make sure the callback is a function​
 				if (typeof generatedCallback === "function") {					
-					var relativePath = path.relative(__dirname + '/../', filePathName);
+					var relativePath = path.relative(__dirname + '../../', filePathName);
 					console.log("path returned = " + relativePath);
 					console.log("==================FIELDS======================");
 					console.log(fields);

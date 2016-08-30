@@ -10,6 +10,7 @@ var DocumentSchema   = new schema({
 	publishedDate: String,
 	publisher: String,
     abstract: String,
+	keywords: String,
 	uploadedUser: String,
 	uploadedDate: String,
     authors: String,
