@@ -207,7 +207,7 @@ app.post('/signup', function(req, res) {
     });
 });
 
-app.get('/me', ensureAuthorized, function(req, res) {
+app.get('/me', function(req, res) {
 	console.log("Me function called");
 /* 		.populate('followers', {username : 1, email : 1, avatar_img : 1, id : 1})
 		.populate('followees', {username : 1, email : 1, avatar_img : 1, id : 1})
