@@ -63,11 +63,11 @@ For example:
 3. Run server by command : start_server ( to execute the built-in batch file start_server.bat )
 
 ---
-	*If there is some errors occured, please try to install shortage packages such as ssh2, textract by command : `npm install ssh2, tika, node-java, node-tika, mkdirp`*
+	*If there is some errors occured, please try to install shortage packages such as ssh2, textract by command : `npm install ssh2, tika, node-java, node-tika, mkdirp, node-neo4j, mime`*
 	*If you face with this error "js-bson: Failed to load c++ bson extension, using pure JS version", refer [this article](https://github.com/Automattic/mongoose/issues/2285) and [this artice] (http://stackoverflow.com/questions/29238424/error-in-npm-install-inspite-of-changing-the-file-bson/29714359#29714359)*
 	*Then use follow command: "npm config set python python2.7" & "npm install" (make sure that all installed module has been removed or clean. If you are using Windows, make sure that your system had been installed Visual Studio and Python)*
 	*If it is still not solved, you should modify the content of index.js file in  ".\node_modules\mongoose\node_modules\mongodb\node_modules\bson\ext" folder from "bson = require('../build/Release/bson'); " to "bson = require('bson'); "" *
-
+	*There is some problem with `nodejava` module while running on node v6.4.0, you need to investigate to fix it.
 
 #### Integrate them with MongoDB and Elastic Search
 When you assure that Client module and Server module are started properly (without error at compiled time), you will turn on a whole system and integrate them step by step:
@@ -107,6 +107,8 @@ When you assure that Client module and Server module are started properly (witho
 #### Client-module development
 Continue developing the client further by editing the `src` directory.   
 With the `gulp` command, any file changes made will automatically be compiled into the specific location within the `dist` directory.
+Rebuild client module by : `gulp build` command, you should instal the `gulp` as a global 
+If you cannot use `gulp build` in your environment, you should upload the `dist` version which had been built in another machine to it.
 
 #### Server-module development
 Start from server.js, you can modify and implement any others feature if you want.
@@ -127,14 +129,41 @@ Deployment
 -----------
 
 Add additional notes about how to deploy this on a live system
-1. Initialize Database structure in MongoDB, you need to create 'documentlib' database by using 'use documentlib' in mongo console. Then create 'User', 'Document' ... collections
-2. Assign permission to write files on file servers or 'upload' folder on the server by command 'chmod -R 777 <folder_name>'
-3. Change search engine configuration to support CORS access:
-	3.1. find the location of 'elasticsearch.yml', Eg: /etc/elasticsearch/elasticsearch.yml  
-	3.2. edit the config file 'elasticsearch.yml' by adding two setting
-		3.2.1. enable cross-domain accessing : 'http.cors.enabled: true'
-		3.2.2. filter localhost domain only : 'http.cors.allow-origin: /https?:\/\/localhost(:[0-9]+)?/
+1. Initialize Database structure in MongoDB, create its folder to store data e.g. '/data/db/'. You need to create 'documentlib' database by using 'use documentlib' in mongo console. Then create 'User', 'Document' ... collections
+2. Initialize Neo4J Database, point the database engine to the 'documentlib graph data storage' location or copy the data to a database location of neo4j.
+    2.1. Configuration active data base to the 'documentlib graph data storage' instance
+	2.2. Change the owner permission by command: chown -R neo4j:neo4j <your_graphdb_folder>
+	Note: If you got a "WARNING: Max 1024 open files allowed, minimum of 40 000 recommended. See the Neo4j manual." message in Ubuntu
+		To fix this, edit this file
+			sudo nano /etc/security/limits.conf (or you can use vi editor)
+				and add these two entries:
+					root    soft    nofile  40000
+					root    hard    nofile  40000
+					neo4j   soft    nofile  40000
+					neo4j   hard    nofile  40000
+					panos   soft    nofile  40000
+					panos   hard    nofile  40000
+				I add an entry for all three users root, neo4j and panos, but you actually just need the one that you’ll use when you restart the service. Then edit
+			sudo nano /etc/pam.d/su
+				uncomment this line
+					session    required   pam_limits.so 
+			and restart your server (your machine not the service).
+			Now if you do
+				sudo service neo4j-service restart
+				the warning should have disappeared.
+	2.3. You need to use a browser in GUI mode to access to http://localhost:7474/browser to activate your database
+3. Assign permission to write files on file servers or 'upload' folder on the server by command 'chmod -R 777 <folder_name>'
+4. Change search engine configuration to support CORS access:
+	4.1. find the location of 'elasticsearch.yml', Eg: /etc/elasticsearch/elasticsearch.yml  
+	4.2. edit the config file 'elasticsearch.yml' by adding two setting
+		4.2.1. enable cross-domain accessing : 'http.cors.enabled: true'
+		4.2.2. filter localhost domain only : 'http.cors.allow-origin: /https?:\/\/<Your_Server_IP>(:[0-9]+)?/ /* e.g: Your_Server_IP = localhost */
 
+*5. Upload the sample data to the system
+	5.1. copy the uploaded file samples to `upload` folder on server module
+	5.2. insert sample data into mongodb database
+	5.3. insert sample data into elasticsearch database
+	5.3. insert sample data into neo4j database
 Contributing
 -----------
 

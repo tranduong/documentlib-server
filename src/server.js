@@ -42,12 +42,12 @@ var InteractManager = require('./utils/UserInteractionManager');
 var actionManager   = new InteractManager();
 
 mongoose.connection.on('open', function (ref) {
-  console.log('Connected to mongo server.');
+  //console.log('Connected to mongo server.');
 });
 
 mongoose.connection.on('error', function (err) {
-  console.log('Could not connect to mongo server!');
-  console.log(err);
+  //console.log('Could not connect to mongo server!');
+  //console.log(err);
 });
 
 // Connect to DB
@@ -66,7 +66,7 @@ app.use(function(req, res, next) {
 app.use(express.static(__dirname));
 
 app.get('/view', function(req, res){
-  console.log("View action : ");
+  //console.log("View action : ");
   var filePath = req.query.p;
   if ( filePath !== "undefined")
   {
@@ -81,7 +81,7 @@ app.get('/view', function(req, res){
 });
 
 app.get('/download', function(req, res){
-  console.log("download action");
+  //console.log("download action");
   var filePath = req.query.p;
   if ( filePath !== "undefined")
   {
@@ -107,26 +107,26 @@ app.post('/authen', function(req, res) {
             });
         } else {
 			/* User.count({},function(err, count) {
-                       console.log(count+' records found in Users model');//Prints 2 records
+                       //console.log(count+' records found in Users model');//Prints 2 records
                        c=count;     
 					   
             }); */
             if (user) {
-				console.log("User authenticated: " + user);
+				//console.log("User authenticated: " + user);
 				user.lastaccessed = accessedTime;
 				user.token = ""; // clear last token
 				user.token = randToken.generate(16) + "" + user._id;
 				user.save(function(err, user1) {
 					if(err)
 					{
-						console.log("Error occured: " + err);
+						//console.log("Error occured: " + err);
 						 res.json({
 							type: false,
 							data: "Error occured: " + err
 						});
 					}
 					else{
-						console.log("User logged in: " + user1);
+						//console.log("User logged in: " + user1);
 						res.json({
 							type: true,
 							data: user1
@@ -134,7 +134,7 @@ app.post('/authen', function(req, res) {
 					}
 				});
             } else {
-				console.log("Incorrect email/password - " +  req.body.email + " - password " + req.body.password );
+				//console.log("Incorrect email/password - " +  req.body.email + " - password " + req.body.password );
 				res.json({
 							type: false,
 							data: "Incorrect email/password - " +  req.body.email + " - password " + req.body.password 
@@ -147,20 +147,20 @@ app.post('/authen', function(req, res) {
 app.post('/signup', function(req, res) {
     User.findOne({email: req.body.email, password: req.body.password, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
         if (err) {
-			console.log("Error occured: " + err);
+			//console.log("Error occured: " + err);
             res.json({
                 type: false,
                 data: "Error occured: " + err
             });
         } else {
             if (user) {
-				console.log("User already exists! - " + user);
+				//console.log("User already exists! - " + user);
                 res.json({
                     type: false,
                     data: "User already exists!"
                 });
             } else {
-				console.log("User from request : " + req);
+				//console.log("User from request : " + req);
                 var userModel = new User();
 				userModel.username 		= req.body.username;
                 userModel.email 		= req.body.email;
@@ -172,7 +172,7 @@ app.post('/signup', function(req, res) {
                     user.save(function(err, user1) {
 						if(err)
 						{
-							console.log("Error occured: " + err);
+							//console.log("Error occured: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: " + err
@@ -182,9 +182,9 @@ app.post('/signup', function(req, res) {
 							// Insert information of the user to elastic server
 							var elasticConnector = new Elastic();
 							elasticConnector.insertUser(user1, function(success){
-								console.log("Elastic Server response : " + success );
+								//console.log("Elastic Server response : " + success );
 							}, function(err){
-								console.log("Elastic Server response : " + err );
+								//console.log("Elastic Server response : " + err );
 							});
 							
 							
@@ -193,7 +193,7 @@ app.post('/signup', function(req, res) {
 							commander.createUserNode(user1);
 							
 							// return the registered User Information
-							console.log("User registered: " + user1);
+							//console.log("User registered: " + user1);
 							user1.password = "";
 							res.json({
 								type: true,
@@ -207,23 +207,23 @@ app.post('/signup', function(req, res) {
     });
 });
 
-app.get('/me', function(req, res) {
-	console.log("Me function called");
+app.get('/me', ensureAuthorized, function(req, res) {
+	//console.log("Me function called");
 /* 		.populate('followers', {username : 1, email : 1, avatar_img : 1, id : 1})
 		.populate('followees', {username : 1, email : 1, avatar_img : 1, id : 1})
 		.populate('friends', {username : 1, email : 1, avatar_img : 1, id : 1}) */
     User.findOne({token: req.token, isDeleted: false},{password : 0, token: 0})
 		.exec( function(err, user) {
 			if (err) {
-				console.log("Error occured: " + err);
+				//console.log("Error occured: " + err);
 				res.json({
 					type: false,
 					data: "Error occured: " + err
 				});
 			} else {
-				console.log("======================ME=====================");
-				console.log(user);
-				console.log("=============================================");
+				//console.log("======================ME=====================");
+				//console.log(user);
+				//console.log("=============================================");
 				res.json({
 					type: true,
 					data: user
@@ -233,10 +233,10 @@ app.get('/me', function(req, res) {
 });
 
 app.get('/getUserInformation', ensureAuthorized, function(req, res) {
-	console.log("getUserInformation function called");
+	//console.log("getUserInformation function called");
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if ( err ){
-			console.log("Error occured: " + err);
+			//console.log("Error occured: " + err);
 			res.json({
 				type: false,
 				data: "Error occured: " + err
@@ -254,15 +254,15 @@ app.get('/getUserInformation', ensureAuthorized, function(req, res) {
 						.populate('friends', {username : 1, email : 1, avatar_img : 1, id : 1})
 						.exec( function(err, user1) {
 							if (err) {
-								console.log("Error occured: " + err);
+								//console.log("Error occured: " + err);
 								res.json({
 									type: false,
 									data: "Error occured: " + err
 								});
 							} else {
-								console.log("======================User Information=====================");
-								console.log(user1);
-								console.log("=============================================");
+								//console.log("======================User Information=====================");
+								//console.log(user1);
+								//console.log("=============================================");
 								res.json({
 									type: true,
 									data: user1
@@ -272,9 +272,9 @@ app.get('/getUserInformation', ensureAuthorized, function(req, res) {
 				}
 				else
 				{
-					console.log("======================User Information=====================");
-					console.log(user);
-					console.log("=============================================");
+					//console.log("======================User Information=====================");
+					//console.log(user);
+					//console.log("=============================================");
 					res.json({
 						type: true,
 						data: user
@@ -282,7 +282,7 @@ app.get('/getUserInformation', ensureAuthorized, function(req, res) {
 				}
 			}
 			else{
-				console.log("Error occured: User is not found");
+				//console.log("Error occured: User is not found");
 				res.json({
 					type: false,
 					data: "Error occured: User is not found"
@@ -295,7 +295,7 @@ app.get('/getUserInformation', ensureAuthorized, function(req, res) {
 
 function ensureAuthorized(req, res, next) {
     var bearerToken;
-	//console.log("request headers : " + req.headers["authorization"]);
+	console.log("request headers : " + req.headers["authorization"]);
     var bearerHeader = req.headers["authorization"];
     if (typeof bearerHeader !== 'undefined') {
         var bearer = bearerHeader.split(" ");
@@ -313,11 +313,11 @@ app.get('/', function(req, res){
 });
 
 app.post('/uploadDoc',ensureAuthorized, function(req, res) {
-	console.log("Run upload");
+	//console.log("Run upload");
 
 	var uploadHelper = new Uploader();
 	uploadHelper.uploadSimple(req,res, function(strFileName, strFilePath, fields){
-		console.log("Token is: " + req.token);
+		//console.log("Token is: " + req.token);
 		User.findOne({token: req.token, isDeleted: false}, function(err, user) {
 			if (err)
 			{
@@ -325,17 +325,17 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 					type: false,
 					data: "Error occured: " + err
 				}); 
-				console.log("Error when finding user :", err);
+				//console.log("Error when finding user :", err);
 			}
 			else
 			{
 				if (user)
 				{
-					console.log("title = " + fields.title);
-					console.log("authors = " + fields.authors);
-					console.log("=============USER==============");
-					console.log(user);
-					console.log("===============================");
+					//console.log("title = " + fields.title);
+					//console.log("authors = " + fields.authors);
+					//console.log("=============USER==============");
+					//console.log(user);
+					//console.log("===============================");
 					var docModel = new Document();
 					docModel.uploadedPath  = strFilePath;
 					docModel.fileName 	   = strFileName;
@@ -350,7 +350,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 					docModel.category	   = fields.category;
 					docModel.privacy   	   = fields.privacy;
 					docModel.isDeleted	   = false;
-					console.log("1. demomode: " + fields.demomode);
+					//console.log("1. demomode: " + fields.demomode);
 					docModel.save(function(err, doc1) {
 						if (err)
 						{
@@ -358,7 +358,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 								type: false,
 								data: "Error occured: " + err
 							}); 
-							console.log("Error when save the document information: ", err);
+							//console.log("Error when save the document information: ", err);
 						}
 						else
 						{
@@ -370,34 +370,34 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 										type: false,
 										data: "Error occured: " + err
 									}); 
-									//console.log("Error when save the user with document: ", err);
+									////console.log("Error when save the user with document: ", err);
 								}
 								else{
-									console.log("The information of the Uploaded document has been stored in the database");
+									//console.log("The information of the Uploaded document has been stored in the database");
 									// Insert information of the document to elastic server
 									var elasticConnector = new Elastic();
-									console.log("2. demomode: " + fields.demomode);
+									//console.log("2. demomode: " + fields.demomode);
 									elasticConnector.uploadDocument(doc1, fields.demomode, user._id, function(success){
-										console.log("Elastic Server response : " + success );
+										//console.log("Elastic Server response : " + success );
 									}, function(err){
-										console.log("Elastic Server response : " + err );
+										//console.log("Elastic Server response : " + err );
 									});
 									
 									// Insert a document Node on Neo4J Graph Database
 									var commander = new Neo4JCommander();
 									commander.createDocumentNode(doc1, function(result){
 										var data =  { time : (new Date()).toJSON() };
-										console.log(data);
+										//console.log(data);
 										actionManager.processInteraction(config.relationship_type.USER_UPLOAD_DOCUMENT, user, doc1._id, data, function(err, success){
 											if ( err ){
-												console.log("Interaction error : " + err );
+												//console.log("Interaction error : " + err );
 												res.json({
 													type: false,
 													data: "Error occured: " + err
 												}); 
 											}
 											else{
-												console.log(success);
+												//console.log(success);
 												res.json({
 													type: true,
 													data: result
@@ -417,7 +417,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 						type: false,
 						data: "Error occured: " + "User is not existed"
 					}); 
-					console.log("User is not existed");
+					//console.log("User is not existed");
 				}
 			}
 		});
@@ -431,7 +431,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 });
 
 app.get('/mydocs', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
+	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
 		{			
@@ -439,21 +439,21 @@ app.get('/mydocs', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my documents : " + err);
+			//console.log("Get my documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
-				//console.log("GET my documents : " + user.username);
+				////console.log("GET my documents : " + user.username);
 				
 				Document.find({
-						'_id': { $in: user.uploadedDocs},
+						'_id': { $in: user.uploadedDocs },
 						isDeleted: false
 					}, null, {sort: {uploadedDate: -1 }},function(err, docs){
 						if (err)
 						{
-							console.log("Error in retreiving docs: " + err);
+							//console.log("Error in retreiving docs: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err
@@ -466,7 +466,7 @@ app.get('/mydocs', ensureAuthorized, function(req,res){
 									type: true,
 									data: docs
 								});	
-								//console.log("documents: " + docs);
+								////console.log("documents: " + docs);
 							}
 							else
 							{
@@ -474,14 +474,14 @@ app.get('/mydocs', ensureAuthorized, function(req,res){
 									type: true,
 									data: ""
 								});
-								console.log("No document found!");
+								//console.log("No document found!");
 							}
 						}				 
 				});			
 			}
 			else
 			{
-				console.log("GET my documents : " + "Can't find the user");
+				//console.log("GET my documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -499,23 +499,23 @@ app.get('/myfriends', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my friends : " + err);
+			//console.log("Get my friends : " + err);
 		}
 		else
 		{
-			console.log(user._id);
+			//console.log(user._id);
 			if ( user && user._id !== 'undefined' )
 			{
 				var commander = new Neo4JCommander();
 				commander.getFriendLists(user._id, function(result){
 					var ids = [];
-					console.log(result.data);
+					//console.log(result.data);
 					for(var i = 0; i < result.data.length; i ++)
 					{
-						console.log(result.data[i]);
+						//console.log(result.data[i]);
 						ids.push(mongoose.Types.ObjectId(result.data[i].mongo_id));
 					}
-					console.log(ids);
+					//console.log(ids);
 					if (ids.length > 0 )
 					{
 						User.find({
@@ -523,7 +523,7 @@ app.get('/myfriends', ensureAuthorized, function(req,res){
 							isDeleted: false
 						}, {_id:1, email:1, username: 1}, function(err, users){
 							if (err) throw err;
-							console.log(users);
+							//console.log(users);
 							res.json({
 								type: true,
 								data: users
@@ -541,7 +541,7 @@ app.get('/myfriends', ensureAuthorized, function(req,res){
 			}
 			else
 			{
-				console.log("GET my friends list : " + "Can't find the user");
+				//console.log("GET my friends list : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -552,8 +552,8 @@ app.get('/myfriends', ensureAuthorized, function(req,res){
 });
 // DOING FIX with UPDATING
 app.post('/updatedocument', ensureAuthorized, function(req,res){
-	//console.log("update my document information: ");
-	//console.log(req.body);
+	////console.log("update my document information: ");
+	////console.log(req.body);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -561,7 +561,7 @@ app.post('/updatedocument', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my documents : " + err);
+			//console.log("Get my documents : " + err);
 		}
 		else
 		{
@@ -570,7 +570,7 @@ app.post('/updatedocument', ensureAuthorized, function(req,res){
 				Document.update({_id: req.body._id}, req.body, function(err, affected, resp) {	  
 					if (err)
 					{
-						//console.log("error :" + err);
+						////console.log("error :" + err);
 						res.json({
 							type: false,
 							data: err
@@ -582,16 +582,16 @@ app.post('/updatedocument', ensureAuthorized, function(req,res){
 						var elasticConnector = new Elastic();
 						var doc = req.body;
 						elasticConnector.updateDocument(doc, user._id, function(success){
-							console.log("Elastic Server response : " + success );
+							//console.log("Elastic Server response : " + success );
 						}, function(err){
-							console.log("Elastic Server response : " + err );
+							//console.log("Elastic Server response : " + err );
 						});
 						
 						res.json({
 							type: true,
 							data: resp
 						})
-						//console.log("update document successfully");
+						////console.log("update document successfully");
 					}
 				});
 			}
@@ -600,7 +600,7 @@ app.post('/updatedocument', ensureAuthorized, function(req,res){
 });
 
 app.post('/deletedocument', ensureAuthorized, function(req,res){	
-	console.log("delete one of my document");
+	//console.log("delete one of my document");
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -608,25 +608,25 @@ app.post('/deletedocument', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my documents : " + err);
+			//console.log("Get my documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{	
 				Document.update({_id: req.body._id}, {isDeleted: true}, function(err, affected, resp) {	
-			/* 		console.log("Delete function");
-					console.log("==================================");
-					console.log("Error:");
-					console.log(err);
-					console.log("Affected:");
-					console.log(affected);
-					console.log("Response:");
-					console.log(resp);
-					console.log("=================================="); */
+			/* 		//console.log("Delete function");
+					//console.log("==================================");
+					//console.log("Error:");
+					//console.log(err);
+					//console.log("Affected:");
+					//console.log(affected);
+					//console.log("Response:");
+					//console.log(resp);
+					//console.log("=================================="); */
 					if (err)
 					{
-						console.log("error :" + err);
+						//console.log("error :" + err);
 						res.json({
 							type: false,
 							data: err
@@ -637,7 +637,7 @@ app.post('/deletedocument', ensureAuthorized, function(req,res){
 						Document.findOne({_id: req.body._id, isDeleted: true}, function(err, doc) {
 							if (err)
 							{
-								console.log("error :" + err);
+								//console.log("error :" + err);
 								res.json({
 									type: false,
 									data: err
@@ -648,9 +648,9 @@ app.post('/deletedocument', ensureAuthorized, function(req,res){
 								// Delete the content in search engine
 								var elasticConnector = new Elastic();
 								elasticConnector.deleteDocument(doc.privacy, doc._id, user._id, function(success){
-									console.log("Elastic Server response : " + success );
+									//console.log("Elastic Server response : " + success );
 								}, function(err){
-									console.log("Elastic Server response : " + err );
+									//console.log("Elastic Server response : " + err );
 								});
 							}
 						});
@@ -659,7 +659,7 @@ app.post('/deletedocument', ensureAuthorized, function(req,res){
 							type: true,
 							data: resp
 						})
-						console.log("deleted document successfully");
+						//console.log("deleted document successfully");
 					}
 				});
 			}
@@ -673,10 +673,10 @@ app.get('/stats', ensureAuthorized, function(req,res){
 	// Collect server information : documents, users, views, downloads, likes, reading, shared
 	User.count({}, function( err, count){
 		stats.users = count;
-		console.log( "Number of users:", count );
+		//console.log( "Number of users:", count );
 		Document.count({},function(err, count){
 			stats.documents = count;
-			console.log( "Number of documents:", count );
+			//console.log( "Number of documents:", count );
 			
 			// Collect my information: upload documents, views, downloads, likes, readings, shared from me
 			User.findOne({_id: uid, isDeleted: false},{password : 0, token : 0}, function(err, user) {
@@ -686,14 +686,14 @@ app.get('/stats', ensureAuthorized, function(req,res){
 						type: false,
 						data: "Error occured: " + err
 					}); 
-					console.log("Get my documents : " + err);
+					//console.log("Get my documents : " + err);
 				}
 				else
 				{
 					var commander = new Neo4JCommander();
 					commander.countRelationships(function(result){
 						var resultStr = "";
-						console.log("Run here: " + result.data.length);
+						//console.log("Run here: " + result.data.length);
 						for ( var i = 0; i < result.data.length; i++ )
 						{
 							
@@ -704,12 +704,12 @@ app.get('/stats', ensureAuthorized, function(req,res){
 							}							
 						}
 						resultStr = "{" + resultStr + "}";
-						console.log(resultStr);
+						//console.log(resultStr);
 						stats.relations = JSON.parse(resultStr);
-						console.log("===============STATISTICS===============");
-						//console.log(user);
-						console.log(stats);
-						console.log("========================================");
+						//console.log("===============STATISTICS===============");
+						////console.log(user);
+						//console.log(stats);
+						//console.log("========================================");
 						res.json(stats);
 					});
 				}
@@ -720,8 +720,8 @@ app.get('/stats', ensureAuthorized, function(req,res){
 
 ////// USER INTERACTION TRACKING PART ===========================>>>>>
 app.post('/userInteractDocument', ensureAuthorized, function(req,res){
-	console.log("Interact Document");
-	console.log(req.body);	
+	//console.log("Interact Document");
+	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
 		if (err)
 		{			
@@ -729,7 +729,7 @@ app.post('/userInteractDocument', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("user Interaction Document : " + err);
+			//console.log("user Interaction Document : " + err);
 		}
 		else
 		{
@@ -744,14 +744,14 @@ app.post('/userInteractDocument', ensureAuthorized, function(req,res){
 				
 				actionManager.processInteraction(typeOfRelation, user, destDocument, relationData, function(err, success){
 					if (err){
-						console.log(err);
+						//console.log(err);
 						res.json({
 							type: false,
 							data: "Error occured: " + err
 						})
 					}
 					else{
-						console.log(success);
+						//console.log(success);
 						res.json({
 							type: true,
 							data: "Success"
@@ -760,7 +760,7 @@ app.post('/userInteractDocument', ensureAuthorized, function(req,res){
 				})
 			}
 			else{
-				console.log("user Interaction cannot find the user");
+				//console.log("user Interaction cannot find the user");
 			}
 		}
 	});	
@@ -768,7 +768,7 @@ app.post('/userInteractDocument', ensureAuthorized, function(req,res){
 
 // get the downloaded documents to list them up
 app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
+	console.log("token in my downloaded documents is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
 		{			
@@ -776,13 +776,13 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my downloaded documents : " + err);
+			//console.log("Get my downloaded documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
-				console.log("GET my downloaded documents : " + user.username);	
+				//console.log("GET my downloaded documents : " + user.username);	
 
 				Document.find({
 						'_id': { $in: user.downloadedDocs},
@@ -790,7 +790,7 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 					}, null, null, function(err, docs){
 						if (err)
 						{
-							console.log("Error in retreiving docs: " + err);
+							//console.log("Error in retreiving docs: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err
@@ -799,12 +799,12 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 						else{
 							if ( docs )
 							{
-								console.log(docs);
+								//console.log(docs);
 			 					res.json({
 									type: true,
 									data: docs
 								});	
-								//console.log("documents: " + docs);
+								////console.log("documents: " + docs);
 							}
 							else
 							{
@@ -812,14 +812,14 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 									type: true,
 									data: ""
 								});
-								console.log("No downloaded document found!");
+								//console.log("No downloaded document found!");
 							}
 						}				 
 				});			
 			}
 			else
 			{
-				console.log("GET my downloaded  documents : " + "Can't find the user");
+				//console.log("GET my downloaded  documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -831,7 +831,7 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 
 // get the liked documents to list them up
 app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
+	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
 		{			
@@ -839,13 +839,13 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my like documents : " + err);
+			//console.log("Get my like documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
-				console.log("GET my like documents : " + user.username);	
+				//console.log("GET my like documents : " + user.username);	
 
 				Document.find({
 						'_id': { $in: user.likes},
@@ -853,7 +853,7 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 					}, null, null, function(err, docs){
 						if (err)
 						{
-							console.log("Error in retreiving docs: " + err);
+							//console.log("Error in retreiving docs: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err
@@ -862,12 +862,12 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 						else{
 							if ( docs )
 							{
-								console.log(docs);
+								//console.log(docs);
 			 					res.json({
 									type: true,
 									data: docs
 								});	
-								//console.log("documents: " + docs);
+								////console.log("documents: " + docs);
 							}
 							else
 							{
@@ -875,14 +875,14 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 									type: true,
 									data: ""
 								});
-								console.log("No like document found!");
+								//console.log("No like document found!");
 							}
 						}				 
 				});			
 			}
 			else
 			{
-				console.log("GET my like documents : " + "Can't find the user");
+				//console.log("GET my like documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -894,7 +894,7 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 
 // get the reading documents to list them up
 app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
+	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
 		{			
@@ -902,13 +902,13 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my reading documents : " + err);
+			//console.log("Get my reading documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
-				console.log("GET my reading documents : " + user.username);	
+				//console.log("GET my reading documents : " + user.username);	
 
 				Document.find({
 						'_id': { $in: user.reads},
@@ -916,7 +916,7 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 					}, null, null, function(err, docs){
 						if (err)
 						{
-							console.log("Error in retreiving docs: " + err);
+							//console.log("Error in retreiving docs: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err
@@ -925,12 +925,12 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 						else{
 							if ( docs )
 							{
-								console.log(docs);
+								//console.log(docs);
 			 					res.json({
 									type: true,
 									data: docs
 								});	
-								//console.log("documents: " + docs);
+								////console.log("documents: " + docs);
 							}
 							else
 							{
@@ -938,14 +938,14 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 									type: true,
 									data: ""
 								});
-								console.log("No reading document found!");
+								//console.log("No reading document found!");
 							}
 						}				 
 				});			
 			}
 			else
 			{
-				console.log("GET my reading documents : " + "Can't find the user");
+				//console.log("GET my reading documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -957,7 +957,7 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 
 // get the shared documents to list them up
 app.get('/myshareddocuments', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
+	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -965,14 +965,14 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get my shared documents : " + err);
+			//console.log("Get my shared documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
-				console.log("GET my shared documents : " + user.username);	
-				console.log("GET my shared documents : " + user._id);					
+				//console.log("GET my shared documents : " + user.username);	
+				//console.log("GET my shared documents : " + user._id);					
 				Document.find({ 'beSharedTransactions' : { $elemMatch : {
 						'fromUser' : user._id
 					  }},
@@ -980,7 +980,7 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 					  }, null, null, function(err, docs){
 						if (err)
 						{
-							console.log("Error in retreiving docs: " + err);
+							//console.log("Error in retreiving docs: " + err);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err
@@ -989,12 +989,12 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 						else{
 							if ( docs )
 							{
-								console.log(docs);
+								//console.log(docs);
 			 					res.json({
 									type: true,
 									data: docs
 								});	
-								//console.log("documents: " + docs);
+								////console.log("documents: " + docs);
 							}
 							else
 							{
@@ -1002,14 +1002,14 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 									type: true,
 									data: ""
 								});
-								console.log("No shared document found!");
+								//console.log("No shared document found!");
 							}
 						}				 
 				});			
 			}
 			else
 			{
-				console.log("GET my shared documents : " + "Can't find the user");
+				//console.log("GET my shared documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -1024,8 +1024,8 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 //// Process Friend Request, Friend Response Confirm, Follow Confirm
 ////// Request Friend
 app.post('/requestFriend', ensureAuthorized, function(req,res){
-	console.log("request Friend");
-	console.log(req.body);	
+	//console.log("request Friend");
+	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
 		if (err)
 		{			
@@ -1033,7 +1033,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("user request friend : " + err);
+			//console.log("user request friend : " + err);
 		}
 		else
 		{
@@ -1047,7 +1047,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 					
 					if ( user.friends.indexOf(friend_id) !== -1 )
 					{
-						console.log("The user has already been my friend");
+						//console.log("The user has already been my friend");
 					}
 					else{
 						User.findOne({_id: friend_id, isDeleted: false}, function(err1, user1){
@@ -1071,7 +1071,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 										else
 										{
 										
-											// console.log(user2);
+											// //console.log(user2);
 											user.wait_response_friends.push(friend_id);
 											user.save(function(err3, user3) {
 												if ( err3 ) {
@@ -1082,7 +1082,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 												}											
 												else
 												{
-													// console.log(user3);
+													// //console.log(user3);
 
 													res.json({
 														type: true,
@@ -1099,7 +1099,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 										type: false,
 										data: "Failed friend request sent"
 									}); 
-									console.log("The user has already request to make friend with the another");
+									//console.log("The user has already request to make friend with the another");
 								}
 							}							
 						});
@@ -1112,7 +1112,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 					type: false,
 					data: "request friend cannot find the user"
 				}); 
-				console.log("request friend cannot find the user");
+				//console.log("request friend cannot find the user");
 			}
 		}
 	});	
@@ -1120,8 +1120,8 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 
 ////// response Friend Request 
 app.post('/requestResponse', ensureAuthorized, function(req,res){
-	console.log("request Friend Response");
-	console.log(req.body);	
+	//console.log("request Friend Response");
+	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
 		if (err)
 		{			
@@ -1129,7 +1129,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("user response friend : " + err);
+			//console.log("user response friend : " + err);
 		}
 		else
 		{
@@ -1143,7 +1143,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 					var index = user.request_friends.indexOf(friend_id);
 					if ( user.friends.indexOf(friend_id) !== -1 )
 					{
-						console.log("The user has already been a friend");
+						//console.log("The user has already been a friend");
 						user.request_friends.slice(index, 1);
 						user.save(function(err,user3){
 							if ( err ){
@@ -1152,7 +1152,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 									data: "Error occured: " + err
 								}); 
 							}
-							console.log("user updated");
+							//console.log("user updated");
 						});
 					}
 					else{
@@ -1167,7 +1167,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 							// If user has been a friends of current user
 							if ( user1.friends.indexOf(user._id) !== -1 )
 							{
-								console.log("The user was a friend");
+								//console.log("The user was a friend");
 								user.request_friends.slice(index, 1);
 								user.save(function(err,user3){
 									if ( err ) {
@@ -1176,7 +1176,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 											data: "Error occured: " + err
 										}); 
 									}
-									console.log("user updated");
+									//console.log("user updated");
 								});
 								
 								user1.wait_response_friends.slice(idx, 1);
@@ -1187,7 +1187,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 											data: "Error occured: " + err
 										}); 
 									}
-									console.log("user updated");
+									//console.log("user updated");
 								});
 							}
 							else
@@ -1202,9 +1202,9 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 												data: "Error occured: " + err
 											}); 
 										}
-										console.log("user updated");
+										//console.log("user updated");
 										
-										// console.log(user3);
+										// //console.log(user3);
 										user1.wait_response_friends.slice(idx, 1);
 										user1.friends.push(user._id);
 										user1.save(function(err2, user2) {
@@ -1215,15 +1215,15 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 												}); 
 											}
 											
-											// console.log(user2);
+											// //console.log(user2);
 											
 											// Update the relationship between two User
 											var commander = new Neo4JCommander();
 											var data = {date : new Date()};
 											commander.createUserUserRelationship(user._id, friend_id, config.relationship_type.USER_FRIEND_USER, data, function(result){
-												// console.log(result);
+												// //console.log(result);
 												commander.createUserUserRelationship(friend_id, user._id, config.relationship_type.USER_FRIEND_USER, data, function(result){
-													// console.log(result);
+													// //console.log(result);
 													res.json({
 														type: true,
 														data: "Success"
@@ -1240,7 +1240,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 										type: false,
 										data: "The user has already response to make friend with the another"
 									}); 
-									console.log("The user has already response to make friend with the another");
+									//console.log("The user has already response to make friend with the another");
 								}
 							}
 						});
@@ -1260,7 +1260,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 					type: false,
 					data: "response friend cannot find the user"
 				}); 
-				console.log("response friend cannot find the user");
+				//console.log("response friend cannot find the user");
 			}
 		}
 	});	
@@ -1268,8 +1268,8 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 
 ////// confirm followers
 app.post('/confirmFollow', ensureAuthorized, function(req,res){
-	console.log("request Friend confirm follow");
-	console.log(req.body);	
+	//console.log("request Friend confirm follow");
+	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
 		if (err)
 		{			
@@ -1277,7 +1277,7 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("user confirm follow : " + err);
+			//console.log("user confirm follow : " + err);
 		}
 		else
 		{
@@ -1286,12 +1286,12 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 			if ( follower_id !== 'undefined')
 			{
 				if ( user._id.equals(follower_id) ) return;  // prevent self make friend
-				console.log("==== Follower list ====");
-				console.log(user.followers);
-				console.log("==== End of Follower list ====");
+				//console.log("==== Follower list ====");
+				//console.log(user.followers);
+				//console.log("==== End of Follower list ====");
 				if ( user.followers.indexOf(follower_id) !== -1 )
 				{
-					console.log("The user has already been followed");						
+					//console.log("The user has already been followed");						
 				}
 				else{
 					User.findOne({_id: follower_id, isDeleted: false}, function(err1, user1){
@@ -1303,7 +1303,7 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 						}				
 						if ( user1.followees.indexOf(user._id) !== -1 )
 						{
-							console.log("The user has followed the another");								
+							//console.log("The user has followed the another");								
 						}
 						else
 						{	
@@ -1315,9 +1315,9 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 										data: "Error occured: " + err
 									}); 
 								}				
-								console.log("user updated");
+								//console.log("user updated");
 								
-								// console.log(user3);
+								// //console.log(user3);
 								user1.followees.push(user._id);
 								user1.save(function(err2, user2) {
 									if ( err2 ){			
@@ -1326,15 +1326,15 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 											data: "Error occured: " + err2
 										}); 
 									}				
-									// console.log(user2);
+									// //console.log(user2);
 									
 									// Update the relationship between two User
 									var commander = new Neo4JCommander();
 									var data = {date : new Date()};
 									commander.createUserUserRelationship(user._id, follower_id, config.relationship_type.USER_FOLLOWS_USER , data, function(result){
-										// console.log(result);
+										// //console.log(result);
 										commander.createUserUserRelationship(follower_id, user._id, config.relationship_type.USER_FOLLOWED_BY_A_USER , data, function(result){
-											// console.log(result);
+											// //console.log(result);
 											res.json({
 												type: true,
 												data: "Success"
@@ -1356,8 +1356,8 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 //////// USER PROFILE AND TIMELINES VIEW
 // get the user's reading documents to list them up
 app.get('/userReadingDocs', ensureAuthorized, function(req,res){
-	//console.log("token is: ", req.token);
-	//console.log(req);
+	////console.log("token is: ", req.token);
+	////console.log(req);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -1365,14 +1365,14 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("get User Reading Documents : " + err);
+			//console.log("get User Reading Documents : " + err);
 		}
 		else
 		{
 			if ( user )
 			{
 				var other_user_id = req.query.userid;
-				console.log("get reading documents from other users: " + other_user_id);	
+				//console.log("get reading documents from other users: " + other_user_id);	
 				if ( user.friends.indexOf(other_user_id) 	!== -1 ||
 					 user.followers.indexOf(other_user_id) 	!== -1 ||
 					 user.followees.indexOf(other_user_id) 	!== -1 )
@@ -1380,7 +1380,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 					User.findOne({_id: other_user_id, isDeleted: false},{password : 0, token : 0, _id :0}, function(err1, other_user) {
 						if (err1)
 						{
-							console.log("Error in retreiving docs: " + err1);
+							//console.log("Error in retreiving docs: " + err1);
 							res.json({
 								type: false,
 								data: "Error occured: "  + err1
@@ -1397,7 +1397,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 									}, null, null, function(err, docs){
 										if (err)
 										{
-											console.log("Error in retreiving docs: " + err);
+											//console.log("Error in retreiving docs: " + err);
 											res.json({
 												type: false,
 												data: "Error occured: "  + err
@@ -1406,12 +1406,12 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 										else{
 											if ( docs )
 											{
-												console.log(docs);
+												//console.log(docs);
 												res.json({
 													type: true,
 													data: docs
 												});	
-												//console.log("documents: " + docs);
+												////console.log("documents: " + docs);
 											}
 											else
 											{
@@ -1419,7 +1419,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 													type: true,
 													data: ""
 												});
-												console.log("No reading document found!");
+												//console.log("No reading document found!");
 											}
 										}				 
 								});
@@ -1436,7 +1436,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 				}
 				else
 				{
-					console.log("<" + user._id + "> compare with <"+ other_user_id + ">" );
+					//console.log("<" + user._id + "> compare with <"+ other_user_id + ">" );
 					if ( user._id == other_user_id )
 					{
 						Document.find({
@@ -1445,7 +1445,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 									}, null, null, function(err, docs){
 										if (err)
 										{
-											console.log("Error in retreiving docs: " + err);
+											//console.log("Error in retreiving docs: " + err);
 											res.json({
 												type: false,
 												data: "Error occured: "  + err
@@ -1454,12 +1454,12 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 										else{
 											if ( docs )
 											{
-												console.log(docs);
+												//console.log(docs);
 												res.json({
 													type: true,
 													data: docs
 												});	
-												//console.log("documents: " + docs);
+												////console.log("documents: " + docs);
 											}
 											else
 											{
@@ -1467,7 +1467,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 													type: true,
 													data: ""
 												});
-												console.log("No reading document found!");
+												//console.log("No reading document found!");
 											}
 										}				 
 								});
@@ -1483,7 +1483,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 			}
 			else
 			{
-				console.log("GET my reading documents : " + "Can't find the user");
+				//console.log("GET my reading documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -1501,25 +1501,25 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 				type: false,
 				data: "Error occured: " + err
 			}); 
-			console.log("Get shared to me documents : " + err);
+			//console.log("Get shared to me documents : " + err);
 		}
 		else
 		{
-			console.log(user._id);
+			//console.log(user._id);
 			if ( user && user._id !== 'undefined' )
 			{
 				var commander = new Neo4JCommander();
 				commander.getSharedForDocument(user._id, function(result){
 					var ids = [];
-					/* console.log("===========SERVER=============");
-					console.log(result.data);
-					console.log("=============================="); */
+					/* //console.log("===========SERVER=============");
+					//console.log(result.data);
+					//console.log("=============================="); */
 					for(var i = 0; i < result.data.length; i ++)
 					{
-						console.log(result.data[i][2].mongo_id);
+						//console.log(result.data[i][2].mongo_id);
 						ids.push(mongoose.Types.ObjectId(result.data[i][2].mongo_id));
 					}
-					console.log(ids);
+					//console.log(ids);
 					if (ids.length > 0 )
 					{
 						Document.find({
@@ -1527,14 +1527,14 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 							isDeleted: false
 						}, function(err, docs){
 							if (err) throw err;
-							/* console.log("===========DOCUMENTS=============");
-							console.log(docs);
-							console.log("================================="); */
+							/* //console.log("===========DOCUMENTS=============");
+							//console.log(docs);
+							//console.log("================================="); */
 							sharedTransactions = [];
 							for(var i = 0; i < result.data.length; i ++)
 							{
 								var datarow = [];
-								console.log(result.data[i][2].mongo_id);
+								//console.log(result.data[i][2].mongo_id);
 								for(var j = 0; j < docs.length; j ++)
 								{
 									if (docs[j]._id == result.data[i][2].mongo_id)
@@ -1549,9 +1549,9 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 								sharedTransactions.push(datarow);
 							}
 							
-							console.log("==============RESULT=============");							
-							console.log(sharedTransactions);
-							console.log("=================================");
+							//console.log("==============RESULT=============");							
+							//console.log(sharedTransactions);
+							//console.log("=================================");
 							res.json({
 								type: true,
 								data: sharedTransactions
@@ -1569,7 +1569,7 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 			}
 			else
 			{
-				console.log("GET my share to me documents : " + "Can't find the user");
+				//console.log("GET my share to me documents : " + "Can't find the user");
 				res.json({
 					type: false,
 					data: "Error occured: "  + "Can't find the user"
@@ -1579,26 +1579,26 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 	});
 });
 /* app.get('/testtika',function(req,res){
-	console.log("TESTING");
+	//console.log("TESTING");
 	tika.extract('E:/git/master_projects/server/documentlib/upload/2016/6/4KedMSVITODwGUbLcciQCOnX/Report_CHU.PDF', function(err, text, meta) {
-		console.log(text); // Logs 'Just some text'.
-		console.log(meta); // Logs 'LibreOffice 4.1'.
+		//console.log(text); // Logs 'Just some text'.
+		//console.log(meta); // Logs 'LibreOffice 4.1'.
 	});
 	res.json('{"result":"Success"}');
 }); */
 
 app.post('/recommendTopN', ensureAuthorized,function(req,res){
-	console.log("Recommend Top N");
-	console.log(req.body);
-	
+	//console.log("Recommend Top N");
+	//console.log(req.body);
+	res.json('{"result":"Success"}');
 });
 
 // others utility functions
 process.on('uncaughtException', function(err) {
-    console.log(err);
+    //console.log(err);
 });
 
 // Start Server
 app.listen(port, function () {
-    console.log( "Scientific Document Library Management - Express server listening on port " + port);
+    //console.log( "Scientific Document Library Management - Express server listening on port " + port);
 });

@@ -9,7 +9,7 @@ config.node_type = {};
 
 // config.default_stuff =  ['red','green','blue','apple','yellow','orange','politics'];
 // Main Database - MongoDB
-config.database.URL				= process.env.MONGO_URL || "mongodb://127.0.0.1:27017/documentlib";
+config.database.URL				= process.env.MONGO_URL || "mongodb://localhost:27017/documentlib";
 
 // Search Engine - ElasticSearch
 config.searchengine.HOST		= "localhost";
