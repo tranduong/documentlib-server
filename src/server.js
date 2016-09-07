@@ -8,7 +8,7 @@ var mongoose   = require("mongoose");
 var path 	   = require('path');
 var randToken  = require('rand-token');
 var mime = require('mime');
-
+var recommender = require('./routes/recommender');
 // test tika
 //var tika	   = require('tika');
 
@@ -64,6 +64,7 @@ app.use(function(req, res, next) {
 });
 
 app.use(express.static(__dirname));
+app.use('/recommend',recommender);
 
 app.get('/view', function(req, res){
   //console.log("View action : ");
@@ -207,7 +208,7 @@ app.post('/signup', function(req, res) {
     });
 });
 
-app.get('/me', ensureAuthorized, function(req, res) {
+app.get('/me', Utility.ensureAuthorized, function(req, res) {
 	//console.log("Me function called");
 /* 		.populate('followers', {username : 1, email : 1, avatar_img : 1, id : 1})
 		.populate('followees', {username : 1, email : 1, avatar_img : 1, id : 1})
@@ -232,7 +233,7 @@ app.get('/me', ensureAuthorized, function(req, res) {
 		});
 });
 
-app.get('/getUserInformation', ensureAuthorized, function(req, res) {
+app.get('/getUserInformation', Utility.ensureAuthorized, function(req, res) {
 	//console.log("getUserInformation function called");
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if ( err ){
@@ -293,26 +294,11 @@ app.get('/getUserInformation', ensureAuthorized, function(req, res) {
 	});
 });
 
-function ensureAuthorized(req, res, next) {
-    var bearerToken;
-	console.log("request headers : " + req.headers["authorization"]);
-    var bearerHeader = req.headers["authorization"];
-    if (typeof bearerHeader !== 'undefined') {
-        var bearer = bearerHeader.split(" ");
-        bearerToken = bearer[1];
-        req.token = bearerToken;
-        next();
-    } else {
-        res.sendStatus(403);
-    }
-}
-
-
 app.get('/', function(req, res){
   res.sendFile(path.join(__dirname, 'views/index.html'));
 });
 
-app.post('/uploadDoc',ensureAuthorized, function(req, res) {
+app.post('/uploadDoc',Utility.ensureAuthorized, function(req, res) {
 	//console.log("Run upload");
 
 	var uploadHelper = new Uploader();
@@ -430,7 +416,7 @@ app.post('/uploadDoc',ensureAuthorized, function(req, res) {
 	
 });
 
-app.get('/mydocs', ensureAuthorized, function(req,res){
+app.get('/mydocs', Utility.ensureAuthorized, function(req,res){
 	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
@@ -491,7 +477,7 @@ app.get('/mydocs', ensureAuthorized, function(req,res){
 	});
 });
 
-app.get('/myfriends', ensureAuthorized, function(req,res){
+app.get('/myfriends', Utility.ensureAuthorized, function(req,res){
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -551,7 +537,7 @@ app.get('/myfriends', ensureAuthorized, function(req,res){
 	});
 });
 // DOING FIX with UPDATING
-app.post('/updatedocument', ensureAuthorized, function(req,res){
+app.post('/updatedocument', Utility.ensureAuthorized, function(req,res){
 	////console.log("update my document information: ");
 	////console.log(req.body);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
@@ -599,7 +585,7 @@ app.post('/updatedocument', ensureAuthorized, function(req,res){
 	});
 });
 
-app.post('/deletedocument', ensureAuthorized, function(req,res){	
+app.post('/deletedocument', Utility.ensureAuthorized, function(req,res){	
 	//console.log("delete one of my document");
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
@@ -667,7 +653,7 @@ app.post('/deletedocument', ensureAuthorized, function(req,res){
 	});
 });
 
-app.get('/stats', ensureAuthorized, function(req,res){
+app.get('/stats', Utility.ensureAuthorized, function(req,res){
 	var stats = {};
 	var uid = req.query.uid;
 	// Collect server information : documents, users, views, downloads, likes, reading, shared
@@ -719,7 +705,7 @@ app.get('/stats', ensureAuthorized, function(req,res){
 });
 
 ////// USER INTERACTION TRACKING PART ===========================>>>>>
-app.post('/userInteractDocument', ensureAuthorized, function(req,res){
+app.post('/userInteractDocument', Utility.ensureAuthorized, function(req,res){
 	//console.log("Interact Document");
 	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
@@ -767,7 +753,7 @@ app.post('/userInteractDocument', ensureAuthorized, function(req,res){
 });
 
 // get the downloaded documents to list them up
-app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
+app.get('/mydownloadeddocuments', Utility.ensureAuthorized, function(req,res){
 	console.log("token in my downloaded documents is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
@@ -830,7 +816,7 @@ app.get('/mydownloadeddocuments', ensureAuthorized, function(req,res){
 });
 
 // get the liked documents to list them up
-app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
+app.get('/mylikeddocuments', Utility.ensureAuthorized, function(req,res){
 	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
@@ -893,7 +879,7 @@ app.get('/mylikeddocuments', ensureAuthorized, function(req,res){
 });
 
 // get the reading documents to list them up
-app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
+app.get('/myreadingdocuments', Utility.ensureAuthorized, function(req,res){
 	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0, _id :0}, function(err, user) {
 		if (err)
@@ -956,7 +942,7 @@ app.get('/myreadingdocuments', ensureAuthorized, function(req,res){
 });
 
 // get the shared documents to list them up
-app.get('/myshareddocuments', ensureAuthorized, function(req,res){
+app.get('/myshareddocuments', Utility.ensureAuthorized, function(req,res){
 	////console.log("token is: ", req.token);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
@@ -1023,7 +1009,7 @@ app.get('/myshareddocuments', ensureAuthorized, function(req,res){
 // Process Social Network acitivities
 //// Process Friend Request, Friend Response Confirm, Follow Confirm
 ////// Request Friend
-app.post('/requestFriend', ensureAuthorized, function(req,res){
+app.post('/requestFriend', Utility.ensureAuthorized, function(req,res){
 	//console.log("request Friend");
 	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
@@ -1119,7 +1105,7 @@ app.post('/requestFriend', ensureAuthorized, function(req,res){
 });
 
 ////// response Friend Request 
-app.post('/requestResponse', ensureAuthorized, function(req,res){
+app.post('/requestResponse', Utility.ensureAuthorized, function(req,res){
 	//console.log("request Friend Response");
 	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
@@ -1267,7 +1253,7 @@ app.post('/requestResponse', ensureAuthorized, function(req,res){
 });
 
 ////// confirm followers
-app.post('/confirmFollow', ensureAuthorized, function(req,res){
+app.post('/confirmFollow', Utility.ensureAuthorized, function(req,res){
 	//console.log("request Friend confirm follow");
 	//console.log(req.body);	
 	User.findOne({token: req.token, isDeleted: false}, function(err, user) {
@@ -1355,7 +1341,7 @@ app.post('/confirmFollow', ensureAuthorized, function(req,res){
 });
 //////// USER PROFILE AND TIMELINES VIEW
 // get the user's reading documents to list them up
-app.get('/userReadingDocs', ensureAuthorized, function(req,res){
+app.get('/userReadingDocs', Utility.ensureAuthorized, function(req,res){
 	////console.log("token is: ", req.token);
 	////console.log(req);
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
@@ -1493,7 +1479,7 @@ app.get('/userReadingDocs', ensureAuthorized, function(req,res){
 	});
 });
 
-app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
+app.get('/sharedForMeDocuments', Utility.ensureAuthorized, function(req,res){
 	User.findOne({token: req.token, isDeleted: false},{password : 0, token : 0}, function(err, user) {
 		if (err)
 		{			
@@ -1578,6 +1564,17 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 		}		
 	});
 });
+
+app.get('/getDocumentCategories', function(req, res){
+	Category.find({},{}, function(err, categories) {
+		if (err) throw err;
+		//console.log(categories);
+		res.json({
+			type: true,
+			data: categories
+		});
+	});
+});
 /* app.get('/testtika',function(req,res){
 	//console.log("TESTING");
 	tika.extract('E:/git/master_projects/server/documentlib/upload/2016/6/4KedMSVITODwGUbLcciQCOnX/Report_CHU.PDF', function(err, text, meta) {
@@ -1586,12 +1583,6 @@ app.get('/sharedForMeDocuments', ensureAuthorized, function(req,res){
 	});
 	res.json('{"result":"Success"}');
 }); */
-
-app.post('/recommendTopN', ensureAuthorized,function(req,res){
-	//console.log("Recommend Top N");
-	//console.log(req.body);
-	res.json('{"result":"Success"}');
-});
 
 // others utility functions
 process.on('uncaughtException', function(err) {

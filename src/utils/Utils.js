@@ -39,4 +39,18 @@ utils.getTypeOfRelation = function(strAction, req, res){
 	}
 }
 
+utils.ensureAuthorized = function ensureAuthorized(req, res, next) {
+    var bearerToken;
+	console.log("request headers : " + req.headers["authorization"]);
+    var bearerHeader = req.headers["authorization"];
+    if (typeof bearerHeader !== 'undefined') {
+        var bearer = bearerHeader.split(" ");
+        bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.sendStatus(403);
+    }
+}
+
 module.exports = Utils;
