@@ -216,13 +216,66 @@ Then create 'User', 'Document' ... collections.
 			`http.cors.allow-headers: X-Requested-With, Content-Type, Content-Length, Authorization`  
 
 		
-*5. Upload the sample data to the system  
+5. Upload the sample data to the system  
 	5.1. copy the uploaded file samples to `upload` folder on server module  
 	5.2. insert sample data into mongodb database  
+		You use `mongodump` to do this job in Linux.  
+			$`sudo mongoimport --db documentlib --collection User --file User.json`  
+			$`sudo mongoimport --db documentlib --collection Document --file Document.json`  
+			$`sudo mongoimport --db documentlib --collection Category --file Category.json`  
+
 	5.3. insert sample data into elasticsearch database  
-	5.3. insert sample data into neo4j database by copy the sample data folder into `data` location of neo4j,  
+
+		5.3.1 Install elasticdump by:  
+			$`npm install elasticdump -g`  
+		5.3.2 Use 2 commands to restore data and the mapping from elastic:  
+			Restore User index:  
+				`elasticdump --output=http://<elastic_deployed_host_IP>:<elastic_accessing_Port>/doclib_main/User --input=./all_doclib_main_User.json --type=data`  
+			Restore Document public and private index:
+				`elasticdump --output=http://<elastic_deployed_host_IP>:<elastic_accessing_Port>/doclib_public/Document --input=./all_doclib_public_Document.json --type=data`  
+				`elasticdump --output=http://<elastic_deployed_host_IP>:<elastic_accessing_Port>/doclib_private/Document --input=./all_doclib_private_Document.json --type=data`  
+
+			Or, you can copy all data from an existing instance of elasticsearch storage, as following example:  
+
+			`elasticdump --input=http://localhost:9200/doclib_private/Document --output=http://192.168.0.108:9200/doclib_private/Document --type=data`  
+			`elasticdump --input=http://localhost:9200/doclib_public/Document --output=http://192.168.0.108:9200/doclib_public/Document --type=data`  
+			`elasticdump --input=http://localhost:9200/doclib_main/User --output=http://192.168.0.108:9200/doclib_main/User --type=data`  
+
+			Or  
+
+			`elasticdump --input=http://localhost:9200/doclib_main/User --output=http://192.168.0.108:9200/doclib_main/User --all=true  
+			`elasticdump --input=http://localhost:9200/doclib_public/Document --output=http://192.168.0.108:9200/doclib_public/Document --type=true`  
+			`elasticdump --input=http://localhost:9200/doclib_private/Document --output=http://192.168.0.108:9200/doclib_private/Document --type=true`  
+
+			*Note* : You can face with an error message 'Cannot switch to old mode now' while doing this with Elasticdump. It means that your node version is outdated  
+			Check it by running $`node --version`, if you get anything below 1.0.0, then you need to upgrade your local version of node.  
+			Simply run the below commands to install and use `n module` to manage node version locally
+				$`sudo npm install n`  
+				$`sudo n stable`  
+
+	5.4. insert sample data into neo4j database by copy the sample data folder into `data` location of neo4j,  
 		you must change the owned of the folders and its content to neo4j:adm  
 
+Uninstallation  
+-----------		
+To clear all the data of the document lib system  
+
+	# Remove the data in elastic search  
+		`curl -XDELETE 'http://localhost:9200/_all'`  
+
+	# Remove the data in graph database neo4j  
+		Use the Admin UI by surf at the address :  
+			`http://localhost:7474/browser`  
+		Query:  
+			MATCH (n) DETACH DELETE n  
+			
+	# Remove the data in mongodb by using mongo express ui tool  
+		`http://localhost:8081`  
+		or use mongo command line to delete all collections  
+		
+	# Delete the upload folder on the file system  
+		`.\upload\ folder` 
+		
 Contributing
 -----------
 
