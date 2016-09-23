@@ -29,7 +29,7 @@ To run SDPRS, it is required to have:
 		
 Please, refer to their manual documents to know how to install them.
 
-### Installing
+### Installation Guide
 
 #### Client-module installation
 First you need to install NodeJS with NPM. After that, you can use npm to installer bower and then use bower to install Gulp.  
@@ -90,7 +90,7 @@ First you need to install NodeJS with NPM. After that, you can use npm to instal
 When you assure that Client module and Server module are started properly (without error at compiled time), you will turn on a whole system and integrate them step by step:
 
 1. Start the mongodb server, then you will have to configure the server module to point to this database server in the next step. (see Configuration section)  
-
+	
 	*If you can't connect to mongodb via localhost (or 127.0.0.1) in ubuntu,  
         refer to [this page](http://stackoverflow.com/questions/13312358/mongo-couldnt-connect-to-server-127-0-0-127017) to solve the problem by removing `mongod.lock` file in '/var/lib/mongodb/' folder*  
 
@@ -161,17 +161,24 @@ By default, client-module includes [`ui.bootstrap`](http://angular-ui.github.io/
 
 Refers to package.json for detail information  
 
-Deployment
------------
+### Deployment
 
 Add additional notes about how to deploy this on a live system
 1. Initialize Database structure in MongoDB, create its folder to store data e.g. '/data/db/'.  
-You need to create 'documentlib' database by using 'use documentlib' in mongo console.  
-Then create 'User', 'Document' ... collections.  
+	1.1. Log into your MongoDB console by using command: $`mongo --host <Your MongoDB Server IP Address> --port 27017 --dbpath /srv/mongodb/db0 --replSet rs0`
+	1.2. use `rs.initiate()` to initiate your mongodb with replication state.  Notice don't use this command without any parameters!  
+		E.g. rs.initiate({ _id: "rs0", version: 1, members: [ { _id: 0, host : "address.to.this.machine:27017" } ] } )  
+	1.3. add your IP address into the replication state configuration.  
+			`rs.add(“<Member of Replication IP Address>”)` - to add  a new member of replication  
+			`rs.addArb(“<Member of Replication IP Address>”)` - to add  a new member of replication which is ArbiterOnly:true for your master  
+
+	1.4. use `rs.slaveOk() to allow queries on secondary nodes  
+	1.4. You need to create 'documentlib' database by using 'use documentlib' in mongo console.  
+	1.5. Then create 'User', 'Document' ... collections.  
 
 2. Initialize Neo4J Database, point the database engine to the `documentlib graph data storage` location or copy the data to a database location of neo4j.  
 
-	2.1. Configuration active data base to the `documentlib graph data storage` instance.  
+	2.1. Configuration active database to the `documentlib graph data storage` instance.  
 
 	2.2. Change the owner permission by command: chown -R neo4j:neo4j <your_graphdb_folder>.  
         Note: If you got a "WARNING: Max 1024 open files allowed, minimum of 40 000 recommended. See the Neo4j manual." message in Ubuntu.  
@@ -195,7 +202,9 @@ Then create 'User', 'Document' ... collections.
 			Now if you do  `sudo service neo4j-service restart`  
 				the warning should have disappeared.  
 
-	2.3. You need to use a browser in GUI mode to access to `http://localhost:7474/browser` to activate your database.  
+	2.3. You need to use a browser in GUI mode to access to `http://<Your_Neo4J_deployed_IP>:7474/browser` to activate your database.  
+		*Note*: If you cannot access to the address, check your neo4j configuration file - neo4j.conf and add followed statement:
+			dbms.connector.http.address=<Your_Neo4J_deployed_ID>:7474
 
 3. Assign permission to write files on file servers or `<server_application_module>/upload` folder on the server by command:  
 	$`chmod -R 777 <folder_name>`.  
@@ -256,8 +265,27 @@ Then create 'User', 'Document' ... collections.
 	5.4. insert sample data into neo4j database by copy the sample data folder into `data` location of neo4j,  
 		you must change the owned of the folders and its content to neo4j:adm  
 
-Uninstallation  
------------		
+6. Copy the server module to your the location where you want to put in. Ensure that NodeJS has been installed in the environment.  
+	6.1. Check the version of NodeJS by typing: $`nodejs --version`.   
+	6.2. If the version of NodeJS is above 1.0.0, then you can change into the server module and using following command:  
+		$`npm install -g`  
+		$`sh ./start_server.sh` (on Linux) or $`start_server.bat` (on Windows) or $`nodejs server.js` (by manual)  
+	6.3. Otherwise, please upgrade your NodeJS version.  
+	Refer back to the Installation of Server Module Part in previous Installation Guide section.  
+	
+7. Copy the distributed version of client module (dist - folder) to a folder where you want to setup.  
+Configure your HTTP server (Web Server) to point to that folder as a host location. Refer to your web server administration guide to do this task.  
+
+### Running
+
+After your installation is successful, you can access to the system via the address which you configured for the client module.  
+`E.g. : http://localhost:8888/`  
+The first screen is login screen, you will need to register an account to access into inside the system and working with it.  
+
+Good Luck! :)
+		
+### Uninstallation  
+
 To clear all the data of the document lib system  
 
 	# Remove the data in elastic search  

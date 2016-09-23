@@ -5,6 +5,7 @@ var ObjectId	 = schema.ObjectId;
 var CategorySchema   = new schema({
 	id : ObjectId,	
 	name: String,
+	value: String,
 	desc: String,
 	documents : [{ref: "Document", type: mongoose.Schema.Types.ObjectId}],
 	subCats : [{ref: "Category", type: mongoose.Schema.Types.ObjectId}],

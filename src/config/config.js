@@ -12,7 +12,7 @@ config.node_type = {};
 config.database.URL				= process.env.MONGO_URL || "mongodb://localhost:27017/documentlib";
 
 // Search Engine - ElasticSearch
-config.searchengine.HOST		= "192.168.0.108";
+config.searchengine.HOST		= "localhost";
 config.searchengine.PORT		= 9200;
 
 // Graph Database - Neo4J

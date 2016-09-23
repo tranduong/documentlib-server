@@ -73,7 +73,7 @@ commander.createDocumentNode = function(doc, callbackDone)
 	if ( bDebug ) id = doc.mongo_id;
 	console.log("document_id : " + id);
 	
-	db.insertNode({mongo_id: id}, config.node_type.DOCUMENT, function(err, node) { 
+	db.insertNode({mongo_id: id, privacy : doc.privacy}, config.node_type.DOCUMENT, function(err, node) { 
 		if (err)
 		{
 			console.log(err);
@@ -329,6 +329,74 @@ commander.getSharedForDocument = function(user_id, callbackFunc){
 		}
 				
 		console.log(result);
+		if ( callbackFunc && typeof callbackFunc === 'function')
+			callbackFunc(result);			
+	});
+
+}
+
+commander.getAllRatingsDocument = function(user_id, callbackFunc){
+	// 	query = "MATCH p=(u:USER)-[r:RATE|LIKE|READ|SHARE|VIEW|DOWNLOAD]->(d:DOCUMENT)
+	//         	WHERE u.mongo_id = '57bebede4ce7748824a36846'
+	//         	Return p";
+	//  config.relationship_type.USER_RATE_DOCUMENT 	 = "RATE";
+	// 	config.relationship_type.USER_VIEW_DOCUMENT      = "VIEW";
+	//	config.relationship_type.USER_DOWNLOAD_DOCUMENT  = "DOWNLOAD";
+	//	config.relationship_type.USER_LIKE_DOCUMENT      = "LIKE";
+	//	config.relationship_type.USER_SHARE_DOCUMENT     = "SHARE";
+	//	config.relationship_type.USER_READ_DOCUMENT      = "READ";	
+	
+	var query = 'MATCH p=(u:' + config.node_type.USER + ')-[r:' + config.relationship_type.USER_RATE_DOCUMENT   + '|' + 
+			config.relationship_type.USER_VIEW_DOCUMENT   + '|' + config.relationship_type.USER_DOWNLOAD_DOCUMENT   + '|' + 
+			config.relationship_type.USER_LIKE_DOCUMENT   + '|' + config.relationship_type.USER_SHARE_DOCUMENT   + '|' +
+			config.relationship_type.USER_READ_DOCUMENT   + ']->(d:' + config.node_type.DOCUMENT + ') WHERE ' +
+			'u.mongo_id = \'' + user_id + '\' RETURN u,r,d';
+	//console.log(query);
+	db.cypherQuery(query, function(err, result){
+		if (err)
+		{
+			console.log(err);
+			throw err;
+		}
+				
+		//console.log(result);
+		if ( callbackFunc && typeof callbackFunc === 'function')
+			callbackFunc(result);			
+	});
+
+}
+
+commander.getAllPublicDocumentsOfFriends = function(user_id, callbackFunc){
+	// 	query = "MATCH p=(u:USER)-[r:FRIEND]->(u2:USER)-[r2:RATE|VIEW|DOWNLOAD|UPLOAD|LIKE|SHARE|READ]->(d:DOCUMENT)
+	// 				WHERE u.mongo_id = '57bebef14ce7748824a36847'
+	// 				AND ( NOT(EXISTS(d.privacy)) OR d.privacy = "public" )
+	// 				RETURN u,r,u2,r2,d;";
+	//  config.relationship_type.USER_RATE_DOCUMENT 	 = "RATE";
+	// 	config.relationship_type.USER_VIEW_DOCUMENT      = "VIEW";
+	//	config.relationship_type.USER_DOWNLOAD_DOCUMENT  = "DOWNLOAD";
+	//	config.relationship_type.USER_DOWNLOAD_DOCUMENT  = "USER_UPLOAD_DOCUMENT";
+	//	config.relationship_type.USER_LIKE_DOCUMENT      = "LIKE";
+	//	config.relationship_type.USER_SHARE_DOCUMENT     = "SHARE";
+	//	config.relationship_type.USER_READ_DOCUMENT      = "READ";	
+	
+	var query = 'MATCH p=(u:' + config.node_type.USER + ')-[r:' + config.relationship_type.USER_FRIEND_USER + ']->(u2:' + config.node_type.USER +
+			')-[r2:' +
+			config.relationship_type.USER_RATE_DOCUMENT   + '|' + config.relationship_type.USER_VIEW_DOCUMENT   + '|' + 
+			config.relationship_type.USER_DOWNLOAD_DOCUMENT   + '|' + config.relationship_type.USER_UPLOAD_DOCUMENT   + '|' + 
+			config.relationship_type.USER_LIKE_DOCUMENT   + '|' + config.relationship_type.USER_SHARE_DOCUMENT   + '|' +
+			config.relationship_type.USER_READ_DOCUMENT   + ']->(d:' + config.node_type.DOCUMENT + ') WHERE ' +
+			' u.mongo_id = \'' + user_id + '\' ' + 
+			' AND ( NOT(EXISTS(d.privacy)) OR d.privacy = "public" ) ' + 
+			' RETURN u,r,u2,r2,d;';
+	//console.log(query);
+	db.cypherQuery(query, function(err, result){
+		if (err)
+		{
+			console.log(err);
+			throw err;
+		}
+				
+		//console.log(result);
 		if ( callbackFunc && typeof callbackFunc === 'function')
 			callbackFunc(result);			
 	});

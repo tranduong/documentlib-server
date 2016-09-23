@@ -1,2 +1,3 @@
+set PATH=C:\Users\TranDuong\AppData\Roaming\npm;C:\Program Files\nodejs\;C:\Program Files\cURL\bin\;C:\Windows\;C:\Windows\system\;C:\Python27\;C:\Program Files\nodejs\;C:\Program Files\Git\bin\;C:\Program Files (x86)\Skype\Phone\;C:\WINDOWS\system32\Npcap;C:\Windows\system32\;C:\Program Files\Java\jdk1.8.0_25\\bin\;C:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\bin;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\MiKTeX 2.9\miktex\bin\x64\;C:\Program Files (x86)\Bitvise SSH Client;C:\Program Files\MongoDB\Server\3.2\bin\;
 set PATH=%PATH%;E:\git\master_projects\server\documentlib\node_modules\pdftotext
 node .\src\server.js

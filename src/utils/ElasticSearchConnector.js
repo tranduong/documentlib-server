@@ -293,12 +293,12 @@ elastic.insertUser = function(user, successCallback, errorCallback)
 }
 
 // delete user from search engine
-elastic.deleteUser = function()
+elastic.deleteUser = function(user_id, successCallback, errorCallback)
 {
 	var options = {
 		host: config.searchengine.HOST,
 		port: config.searchengine.PORT,
-		path: '/doclib_main/User/' + cloneObject.id,
+		path: '/doclib_main/User/' + user_id,
 		method: 'DELETE'
 	};
 	console.log("==========Delete User =========");
@@ -327,6 +327,62 @@ elastic.deleteUser = function()
 	httpreq.end();	  
 }
 
-// update user information in the search engine
+// http://localhost:9200/doclib_public/Document/57c0fa33ce2ed398217eb87f/_termvectors?fields=abstract,keywords,title&offsets=false&positions=false&term_statistics=true&field_statistics=true&pretty=true
+// get Term Vectors of a document
+elastic.getTermVectors = function(doc_id, privacy, lastdata, successCallback, errorCallback)
+{
+	if ( privacy == 'undefined' )
+	{
+		privacy = 'public';
+	}
+	
+	var options = {
+		host: config.searchengine.HOST,
+		port: config.searchengine.PORT,
+		path: '/doclib_' + privacy + '/Document/' + doc_id + '/_termvectors?fields=abstract,keywords,title&offsets=false&positions=false&term_statistics=true&field_statistics=true',
+		method: 'GET'
+	};
+	//console.log("==========Get Term Vectors of Documents =========");
+	// console.log(options);
+	//console.log("Request sent");
+	var httpreq = http.request(options, function (response) {
+		var body = "";
+		response.setEncoding('utf8');		
+		response.on('data', function (chunk) {
+			//console.log("body: " + chunk);
+			body += chunk;
+		});
+		response.on('end', function() {
+			//console.log("Response received");
+			//console.log("response code:" + response.statusCode);
+			if ( response.statusCode == 200 )
+			{
+				var result = {status: response.statusCode, data: JSON.parse(body)};
+				if (typeof successCallback === "function") {
+					successCallback(result, lastdata);
+				}
+			}
+			else{
+				var result = {status: response.statusCode, data: ""};
+				if (typeof errorCallback === "function") {
+					errorCallback(result, lastdata);
+				}
+			}
+		});
+	});
+	
+	httpreq.on('error', function(e) { 
+		//console.log("request error timeout");
+		var result = {status: -1, data: ""};
+		if (typeof errorCallback === "function") {
+			console.log('problem with request: ' + e.message);
+			errorCallback(result, lastdata);
+		}
+	}); 
+
+	httpreq.setTimeout(500); 
+	// No body data
+	httpreq.end();	  
+}
 
 module.exports = ElasticSearchConnnector;

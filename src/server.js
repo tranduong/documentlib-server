@@ -1566,9 +1566,10 @@ app.get('/sharedForMeDocuments', Utility.ensureAuthorized, function(req,res){
 });
 
 app.get('/getDocumentCategories', function(req, res){
-	Category.find({},{}, function(err, categories) {
+	Category.find({}, function(err, categories) {
+		// console.log(err);
 		if (err) throw err;
-		//console.log(categories);
+		console.log(categories);
 		res.json({
 			type: true,
 			data: categories
