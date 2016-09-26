@@ -102,10 +102,10 @@ recommender.post('/testForLoop', function(req,res){
 	Recommend(Top-K of R);
 	end
 ****************************************************************** */
-//recommender.post('/simpleTopN', Utility.ensureAuthorized,function(req,res){
-recommender.post('/simpleTopN', function(req,res){
+recommender.post('/simpleTopN', Utility.ensureAuthorized,function(req,res){
+// recommender.post('/simpleTopN', function(req,res){
 	//console.log("Recommend Top N");
-	console.log(req.body);
+	//console.log(req.body);
 	var u 		= req.body.user_id; 	// User u
 	var thres 	= req.body.threshold; 	// Threshold δ, 
 	var K 		= req.body.K_value; 	// number of Recommendations K
@@ -141,8 +141,8 @@ recommender.post('/simpleTopN', function(req,res){
 		// console.log("==========================================");
 		// console.log(l);
 		// console.log("==========================================");
-		
-		Document.find({isDeleted: false},{isDeleted:1, privacy:1}, null, function(err, docs){
+		// console.log("length of l = " + l.length);
+		Document.find({isDeleted: false},{isDeleted:1, privacy:1, uploadedBy:1}, null, function(err, docs){
 			
 			var elasticConnector = new Elastic(); // prepair elastic search connector to get document term vectors
 					
@@ -151,16 +151,25 @@ recommender.post('/simpleTopN', function(req,res){
 			// console.log("==========================================");
 			// console.log(L);
 			// console.log("==========================================");
+			// console.log("length of L = " + L.length);
 			
 			var di  = null;
 			var dj  = null;
-			console.log("start processing");
+			// console.log("start processing");
+			var proceedItems;
+			proceedItems = 0;
+			// L ← L - di;	
+			var stillProcessing;
+			stillProcessing = 0;
+			var itemsLookupSimilar = L;			
 			
 			var similarResults = [];
-			var timeOut = setTimeout(finalLookupSimilar, 2000);
+			var timeOut = setTimeout(finalLookupSimilar, 20000);
 			// for i = 1 to |L| do
 			function finalLookupSimilar() { 
-				//console.log('finalLookupSimilar() Done', similarResults); 
+				// console.log("final lookup similar");
+				// console.log('finalLookupSimilar() Done', similarResults); 
+				// console.log("final proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
 				clearTimeout(timeOut);
 				//console.log("Start to collect result");			
 				if ( similarResults.length > 0 )
@@ -176,30 +185,33 @@ recommender.post('/simpleTopN', function(req,res){
 					}
 					// console.log("working to collect result");				
 	
-					console.log("Before");
+					// console.log("Before");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					//sort R base on Dij i.e. Rank(R) based on 4ij;
 					R.sort(function(a, b) {
 						return ( ( a.sim > b.sim ) ? -1 : (( a.sim < b.sim ) ? 1 : 0) );
 					});
-					console.log("After");
+					// console.log("After");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					// return top-K element from R to recommends i.e. Recommend(Top-K of R)
 					
 					// return the document list as a complement part
 					var ids = [];
 					
-					if ( R.length <= K )
+					if ( R.length < K )
 					{
 						for (var idx = 0; idx < R.length; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc._id);
+							if ( ids.indexOf(R[idx].doc._id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc._id);
+							}
 						}
 					}
 					else
@@ -207,9 +219,12 @@ recommender.post('/simpleTopN', function(req,res){
 						// extract top-K elements
 						for (var idx = 0; idx < K; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc._id);
+							if ( ids.indexOf(R[idx].doc._id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc._id);
+							}
 						}
 					}
 					
@@ -268,21 +283,16 @@ recommender.post('/simpleTopN', function(req,res){
 						data: []
 					});
 				}
-			}
+			}			
 			
-			var proceedItems;
-			proceedItems = 0;
-			// L ← L - di;	
-			var stillProcessing;
-			stillProcessing = 0;
-			var itemsLookupSimilar = L;
+			// console.log("before going into find similar object");
+			// console.log("first proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
 			itemsLookupSimilar.forEach(function(itemSim) 
 			{
 				di = itemSim;
 				proceedItems += 1;
 				stillProcessing +=  1;	
-				
-				// console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
+				// console.log("second proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
 				// console.log("document id = " + di._id);	
 				// console.log("============== take di from L ============");
 				// console.log(di);
@@ -302,7 +312,7 @@ recommender.post('/simpleTopN', function(req,res){
 
 				var objDi = JSON.parse(JSON.stringify(di));
 				var objData = {d1: objDi};
-				elasticConnector.getTermVectors(di._id, di.privacy, objData, function(resultTermsdi, lastdata){
+				elasticConnector.getTermVectors(di._id, di.privacy, di.uploadedBy, objData, function(resultTermsdi, lastdata){
 					var diData = resultTermsdi.data;
 					
 					var found = false;
@@ -320,7 +330,7 @@ recommender.post('/simpleTopN', function(req,res){
 						// console.log(lastdata);						
 						// console.log("==========================================");	
 						// for j = 1 to |l| do
-						
+						// console.log("found term vector of document i");
 						var diffResults = [];						
 						function finalFindMax() 
 						{ 
@@ -345,21 +355,29 @@ recommender.post('/simpleTopN', function(req,res){
 							}							
 							
 							//console.log('similar results now',similarResults);
-							process.nextTick(function() {
-								stillProcessing -=  1;													
-								console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-								console.log("document id = " + lastdata.d1._id);
+							setTimeout(function() {
+								// console.log("findmax before third proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								stillProcessing -=  1;									
+								// console.log("third proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								// console.log("document id = " + lastdata.d1._id);
 								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 									finalLookupSimilar();
 								}			
-							});										
-						}
+							}, 0);										
+						}						
 						
-						var itemsFindMax = l;
+						var itemsFindMax = [];
+						for (var kl = 0; kl < l.length; kl++ )
+						{
+							itemsFindMax.push(l[kl]);
+						}
+						// console.log("length of items find max = " + itemsFindMax.length);
 						if ( itemsFindMax.length > 0 )
 						{
-							function series(itemFindMax) {
-								if(itemFindMax) 
+							// console.log("start find max series");
+							function seriesFindMax(itemFindMax) {
+								//console.log("item find max = " + itemFindMax);
+								if(typeof itemFindMax !== 'undefined') 
 								{
 									dj = itemFindMax;
 									// console.log("get a document j from l");
@@ -379,7 +397,7 @@ recommender.post('/simpleTopN', function(req,res){
 									{
 										var objDj = JSON.parse(JSON.stringify(dj));
 										var objDiDj = {d1: lastdata.d1, d2: objDj, d1_vdata : diData};
-										elasticConnector.getTermVectors(dj.mongo_id, privacy, objDiDj, function(resultTermsdj, originaldocs){										
+										elasticConnector.getTermVectors(dj.mongo_id, privacy, dj.uploaded_user, objDiDj, function(resultTermsdj, originaldocs){										
 											var djData = resultTermsdj.data;
 											var d1Data = originaldocs.d1_vdata;
 											
@@ -414,76 +432,82 @@ recommender.post('/simpleTopN', function(req,res){
 												// console.log("=======================");		
 												
 												diffResults.push({d1 : originaldocs.d1, d2 : originaldocs.d2,  diff: Dij});
+												
+												return seriesFindMax(itemsFindMax.shift());		
+											}											
+											else
+											{
+												return seriesFindMax(itemsFindMax.shift());											
 											}
-											return series(itemsFindMax.shift());											
 										},
 										function(err, lastdata){
-											console.log("Error happened");
-											console.log(err);											
-											return series(itemsFindMax.shift());											
-										});
+											// console.log("Error happened");
+											// console.log(err);											
+											return seriesFindMax(itemsFindMax.shift());											
+										});										
 									}
 									else
 									{
-										console.log("same item happened");
-										// if item i and item j is the same, count that the item i is evaluated and rejected.									
-										return series(itemsFindMax.shift());
+										// console.log("same item happened");
+										// if item i and item j is the same, count that the item i is evaluated and rejected.
+										return seriesFindMax(itemsFindMax.shift());										
 									}
-									// console.log("==========================================");								
+									// console.log("==========================================");
 								}
 								else
 								{									
-									console.log("find Max");
+									// console.log("find Max");
 									return finalFindMax();
 								}								  
 							}
-							series(itemsFindMax.shift());
+							seriesFindMax(itemsFindMax.shift());
 						}
 						else
 						{							
-							console.log("no item happened");
+							// console.log("no item happened");
 							
-							process.nextTick(function() {
+							setTimeout(function() {
 								stillProcessing -=  1;	
 													
-								console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-								console.log("document id = " + lastdata.d1._id);	
+								// console.log("forth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								// console.log("document id = " + lastdata.d1._id);	
 								
 								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 									finalLookupSimilar();
 								}
-							});	
+							}, 0);	
 						}
 					}
 					else
 					{					
-						console.log("no term vector happened");
+						// console.log("no term vector happened");
 		
-						process.nextTick(function() {
+						setTimeout(function() {
 							stillProcessing -=  1;	
 													
-							console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-							console.log("document id = " + lastdata.d1._id);	
+							// console.log("fifth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+							// console.log("document id = " + lastdata.d1._id);	
 							if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 								finalLookupSimilar();
 							}
-						});	
-					}					
+						}, 0);	
+					}						
 				}, 
 				function(err, lastdata){					
-					console.log(err);
+					// console.log(err);
 					// res.json('{"result":"Failed"}');		
-					console.log("term vector error happened");					
+					// console.log("term vector error happened");					
 					
-					process.nextTick(function() {
+					setTimeout(function() {
 						stillProcessing -=  1;	
 						
-						console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-						console.log("document id = " + lastdata.d1._id);	
+						// console.log("sixth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+						// console.log("document id = " + lastdata.d1._id);	
 						if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 							finalLookupSimilar();
 						}						
-					});	
+					}, 0);	
+					
 				});
 				
 				// console.log("==========================================");
@@ -501,230 +525,9 @@ recommender.post('/topicTopN', Utility.ensureAuthorized,function(req,res){
 	res.json('{"result":"Success"}');
 });
 
-recommender.post('/socialTopNOld', Utility.ensureAuthorized,function(req,res){
-//recommender.post('/socialTopN', function(req,res){
-	//console.log("Social Recommend Top N");
-	console.log(req.body);
-	var u 		= req.body.user_id; 	// User u
-	var thres 	= req.body.threshold; 	// Threshold δ, 
-	var K 		= req.body.K_value; 	// number of Recommendations K
-	var recommends = [];				// Result: Top-K of Recommendation items set R
-	
-	// FOR TESTING ALGORITHM
-	// u = '57bebede4ce7748824a36846';
-	// thres = 0.1;
-	// K = 10;
-	// Get all document rates by u.
-	var ratingDocs 	= [];
-	var candidate  	= {};
-	var commander  	= new Neo4JCommander();
-	var R 			= [];
-	var L			= [];
-	var l 			= [];
-	var timeOut = setTimeout(function() {
-		if ( L.length == 0 )
-		{
-			// console.log("Before");
-			// console.log("=============");
-			// console.log(R)
-			// console.log("=============");
-			// sort R base on Dij i.e. Rank(R) based on 4ij;
-			R.sort(function(a, b) {
-				return ( ( a.sim > b.sim ) ? -1 : (( a.sim < b.sim ) ? 1 : 0) );
-			});
-			// console.log("After");
-			// console.log("=============");
-			// console.log(R)
-			// console.log("=============");
-			// return top-K element from R to recommends i.e. Recommend(Top-K of R)
-			if ( R.length <= K )
-			{
-				for (var idx = 0; idx < R.length; idx++)
-				{
-					recommends.push(R[idx]);
-				}
-			}
-			else
-			{
-				// extract top-K elements
-				for (var idx = 0; idx < K; idx++)
-				{
-					recommends.push(R[idx]);
-				}
-			}
-						
-			// console.log(recommends);						
-			console.timeEnd("socialTopN");
-			
-			res.json({
-				type: true,
-				data: recommends
-			});
-		}
-		else{
-			res.json({
-				type: false,
-				data: []
-			});
-		}
-	}, 1000);
-	
-	console.time("socialTopN");
-	
-	commander.getAllRatingsDocument(u, function(listRatings){
-		
-		ratingDocs = listRatings;
-		// console.log("Result of the user, relationship and documents ");
-		// console.log("==========================================");
-		// console.log(listRatings);
-		// console.log("==========================================");
-		commander.getAllPublicDocumentsOfFriends(u, function(friendDocs){
-			
-			var elasticConnector = new Elastic(); // prepair elastic search connector to get document term vectors
-			
-			// L ← all public documents of user's friend			
-			L = [];
-			for (var h = 0; h < friendDocs.data.length; h++ )
-			{
-				L.push(friendDocs.data[h][4]);
-			}
-			// console.log("List of all documents from my friends");
-			// console.log("==========================================");
-			// console.log(L);
-			// console.log("==========================================");
-			// l ← list document rated by u; 
-			l = [];
-			for (var k = 0; k < ratingDocs.data.length; k++ )
-			{
-				l.push(ratingDocs.data[k][2]);
-			}
-			// console.log("List of documents user rated");
-			// console.log("==========================================");
-			// console.log(l);
-			// console.log("==========================================");
-			
-			var di  = null;
-			var dj  = null;
-			while (L.length > 0) // for i = 1 to |L| do
-			{
-				var max = 0;
-				// L ← L - di;		
-				di = L.pop();
-				// console.log("==========================================");
-				// console.log(di);
-				// console.log(L);
-				// console.log("==========================================");
-				var diprivacy = "public";
-				if ( di.privacy != null )
-				{
-					diprivacy = di.privacy;
-				}
-				
-				// console.log("document i");
-				// console.log("==========================================");
-				// console.log(di);
-				// console.log("------------------------------------------");
-								
-				elasticConnector.getTermVectors(di.mongo_id,diprivacy, function(resultTermsdi){
-					// console.log("term vector of document i");
-					// console.log("==========================================");
-					// console.log(resultTermsdi);
-					// console.log("==========================================");
-					var diData = resultTermsdi.data;
-					
-					var found = false;
-					if (diData.found == true )
-					{
-						found = true;
-					}
-					
-					if ( found ){
-						
-						for (var j = 0; j < l.length; j++)
-						{
-							dj = l[j];
-							// console.log("document j");
-							// console.log("==========================================");
-							// console.log(dj.mongo_id);
-							// console.log("==========================================");
-							var privacy = "public";
-							if ( dj.privacy != null )
-							{
-								privacy = dj.privacy;
-							}
-							
-							// console.log("privacy = " + privacy);
-							
-							if (di.mongo_id != dj.mongo_id)
-							{
-								elasticConnector.getTermVectors(dj.mongo_id, privacy, function(resultTermsdj){	
-									// console.log("term vector of document j");
-									// console.log("==========================================");
-									// console.log(resultTermsdj);
-									// console.log("==========================================");	
-									var djData = resultTermsdj.data;
-									var found2 = false;								
-									if (djData.found == true )
-									{
-										found2 = true;
-									}							
-									
-									if ( found2 )
-									{
-										var vectors = Utility.buildVectors2Doc(diData.term_vectors, djData.term_vectors);
-										// console.log("vectors to compare");
-										// console.log("=======================");
-										// console.log(vectors);
-										// console.log("=======================");
-										
-										var Dij = comparer.consineSimilarity(vectors.d1, vectors.d2); // compare algorithm					
-										// console.log("Similarity");
-										// console.log("=======================");
-										// console.log(Dij);
-										// console.log("=======================");
-										
-										
-										if ( max < Dij )
-										{
-											max = Dij; // find the most similarity
-										}
-										
-										if ( j >= l.length && max > thres )
-										{
-											candidate = {};
-											candidate.doc = di.mongo_id;
-											candidate.sim = max;
-											R.push(candidate);
-										}					
-									}
-								},
-								function(err){
-									console.log(err);
-									//res.json('{"result":"Failed"}');
-								});
-							}
-							// console.log("==========================================");
-						}
-						
-					}
-				}, 
-				function(err){					
-					console.log(err);
-					// res.json('{"result":"Failed"}');
-				});
-				
-				// console.log("==========================================");							
-				
-			}			
-
-		});
-	});
-
-});
-
 recommender.post('/socialTopN', function(req,res){
 	//console.log("Recommend Top N");
-	console.log(req.body);
+	// console.log(req.body);
 	var u 		= req.body.user_id; 	// User u
 	var thres 	= req.body.threshold; 	// Threshold δ, 
 	var K 		= req.body.K_value; 	// number of Recommendations K
@@ -760,7 +563,7 @@ recommender.post('/socialTopN', function(req,res){
 		// console.log("==========================================");
 		// console.log(l);
 		// console.log("==========================================");
-		
+				
 		commander.getAllPublicDocumentsOfFriends(u, function(friendDocs){
 			
 			var elasticConnector = new Elastic(); // prepair elastic search connector to get document term vectors
@@ -771,17 +574,17 @@ recommender.post('/socialTopN', function(req,res){
 			{
 				L.push(friendDocs.data[h][4]);
 			}
-			console.log("List of all documents inside the system");
-			console.log("==========================================");
-			console.log(L);
-			console.log("==========================================");
+			// console.log("List of all documents inside the system");
+			// console.log("==========================================");
+			// console.log(L);
+			// console.log("==========================================");
 			
 			var di  = null;
 			var dj  = null;
-			console.log("start processing");
+			// console.log("start processing");
 			
 			var similarResults = [];
-			var timeOut = setTimeout(finalLookupSimilar, 5000);
+			var timeOut = setTimeout(finalLookupSimilar, 20000);
 			// for i = 1 to |L| do
 			function finalLookupSimilar() { 
 				//console.log('finalLookupSimilar() Done', similarResults); 
@@ -800,30 +603,33 @@ recommender.post('/socialTopN', function(req,res){
 					}
 					// console.log("working to collect result");				
 	
-					console.log("Before");
+					// console.log("Before");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					//sort R base on Dij i.e. Rank(R) based on 4ij;
 					R.sort(function(a, b) {
 						return ( ( a.sim > b.sim ) ? -1 : (( a.sim < b.sim ) ? 1 : 0) );
 					});
-					console.log("After");
+					// console.log("After");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					// return top-K element from R to recommends i.e. Recommend(Top-K of R)
 					
 					// return the document list as a complement part
 					var ids = [];
 					
-					if ( R.length <= K )
+					if ( R.length < K )
 					{
 						for (var idx = 0; idx < R.length; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc.mongo_id);
+							if ( ids.indexOf(R[idx].doc.mongo_id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc.mongo_id);
+							}
 						}
 					}
 					else
@@ -831,9 +637,12 @@ recommender.post('/socialTopN', function(req,res){
 						// extract top-K elements
 						for (var idx = 0; idx < K; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc.mongo_id);
+							if ( ids.indexOf(R[idx].doc.mongo_id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc.mongo_id);
+							}
 						}
 					}
 					
@@ -859,8 +668,7 @@ recommender.post('/socialTopN', function(req,res){
 								for (var jk = 0; jk < recommends.length; jk++)
 								{
 									for (var ik = 0; ik < fullDocs.length; ik++)
-									{
-									
+									{									
 										if ( fullDocs[ik]._id == recommends[jk].doc.mongo_id )
 										{
 											var data = {};
@@ -927,7 +735,7 @@ recommender.post('/socialTopN', function(req,res){
 
 				var objDi = JSON.parse(JSON.stringify(di));
 				var objData = {d1: objDi};
-				elasticConnector.getTermVectors(di.mongo_id, diprivacy, objData, function(resultTermsdi, lastdata){
+				elasticConnector.getTermVectors(di.mongo_id, diprivacy, di.uploaded_user, objData, function(resultTermsdi, lastdata){
 					var diData = resultTermsdi.data;
 					
 					var found = false;
@@ -969,23 +777,29 @@ recommender.post('/socialTopN', function(req,res){
 								similarResults.push(result);											
 							}							
 							
-							//console.log('similar results now',similarResults);				
-
-							process.nextTick(function() {
+							// console.log('similar results now',similarResults);				
+							setTimeout(function() {
 								stillProcessing -=  1;	
-								console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-								console.log("document id = " + lastdata.d1.mongo_id);												
+
+								// console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								// console.log("document id = " + lastdata.d1.mongo_id);												
 								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 									finalLookupSimilar();
 								}
-							});	
+							}, 0);	
 						}
 						
-						var itemsFindMax = l;
+						var itemsFindMax = [];
+						for (var kl = 0; kl < l.length; kl++ )
+						{
+							itemsFindMax.push(l[kl]);
+						}
+						
+						// console.log("length of items find max = " + itemsFindMax.length);
 						if ( itemsFindMax.length > 0 )
 						{
-							function series(itemFindMax) {
-								if(itemFindMax) 
+							function seriesFindMax(itemFindMax) {
+								if(typeof itemFindMax !== 'undefined') 
 								{
 									dj = itemFindMax;
 									// console.log("get a document j from l");
@@ -1005,7 +819,7 @@ recommender.post('/socialTopN', function(req,res){
 									{
 										var objDj = JSON.parse(JSON.stringify(dj));
 										var objDiDj = {d1: lastdata.d1, d2: objDj, d1_vdata : diData};
-										elasticConnector.getTermVectors(dj.mongo_id, privacy, objDiDj, function(resultTermsdj, originaldocs){										
+										elasticConnector.getTermVectors(dj.mongo_id, privacy, dj.uploaded_user, objDiDj, function(resultTermsdj, originaldocs){										
 											var djData = resultTermsdj.data;
 											var d1Data = originaldocs.d1_vdata;
 											
@@ -1040,76 +854,83 @@ recommender.post('/socialTopN', function(req,res){
 												// console.log("=======================");		
 												
 												diffResults.push({d1 : originaldocs.d1, d2 : originaldocs.d2,  diff: Dij});
+												
+												return seriesFindMax(itemsFindMax.shift());				
 											}
-											return series(itemsFindMax.shift());											
+											else
+											{
+												return seriesFindMax(itemsFindMax.shift());				
+											}
+																		
 										},
 										function(err, lastdata){
-											console.log("Error happened");
-											console.log(err);											
-											return series(itemsFindMax.shift());											
+											// console.log("Error happened");
+											// console.log(err);											
+											return seriesFindMax(itemsFindMax.shift());											
 										});
 									}
 									else
 									{										
-										console.log("same item happened");										
+										// console.log("same item happened");										
 										// if item i and item j is the same, count that the item i is evaluated and rejected.									
-										return series(itemsFindMax.shift());
+										return seriesFindMax(itemsFindMax.shift());
 									}
 									// console.log("==========================================");								
 								}
 								else
 								{			
-									console.log("find Max");
+									// console.log("find Max");
 									return finalFindMax();
 								}								  
 							}
-							series(itemsFindMax.shift());
+							seriesFindMax(itemsFindMax.shift());
+							
 						}
 						else
 						{							
-							console.log("no item happened");
+							// console.log("no item happened");
 							
-							process.nextTick(function() {
+							setTimeout(function() {
 								stillProcessing -=  1;	
 														
-								console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-								console.log("document id = " + lastdata.d1.mongo_id);	
+								// console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								// console.log("document id = " + lastdata.d1.mongo_id);	
 								
 								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {									
 									finalLookupSimilar();
 								}
-							});	
+							}, 0);	
 						}
 					}
 					else
 					{					
-						console.log("no term vector happened");
+						// console.log("no term vector happened");
 		
-						process.nextTick(function() {
+						setTimeout(function() {
 							stillProcessing -=  1;	
 						
-							console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-							console.log("document id = " + lastdata.d1.mongo_id);	
+							// console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+							// console.log("document id = " + lastdata.d1.mongo_id);	
 							if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 								finalLookupSimilar();
 							}
-						});							
+						}, 0);							
 					}					
 				}, 
 				function(err, lastdata){					
-					console.log(err);
-					console.log("term vector error happened");
+					// console.log(err);
+					// console.log("term vector error happened");
 
 					// res.json('{"result":"Failed"}');						
-					process.nextTick(function() {
+					setTimeout(function() {
 						stillProcessing -=  1;	
 					
-						console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-						console.log("document id = " + lastdata.d1.mongo_id);	
+						// console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+						// console.log("document id = " + lastdata.d1.mongo_id);	
 						if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
 							finalLookupSimilar();
 						}						
-					});							
+					}, 0);
 				});
 				
 				// console.log("==========================================");
@@ -1161,19 +982,12 @@ recommender.post('/simpleTopNDebug', function(req,res){
 		{
 			l.push(ratingDocs.data[k][2]);
 		}
-		
-		// DEBUG
-		l = [];
-		l.push({mongo_id : '57c0f436ce2ed398217eb87c', privacy : 'public'});
-		l.push({mongo_id : '57c0f5b0ce2ed398217eb87e', privacy : 'public'});
-		l.push({mongo_id : '57c0fabbce2ed398217eb880', privacy : 'public'});
-		
 		// console.log("List of documents user rated");
 		// console.log("==========================================");
 		// console.log(l);
 		// console.log("==========================================");
-		
-		Document.find({isDeleted: false},{isDeleted:1, privacy:1}, null, function(err, docs){
+		console.log("length of l = " + l.length);
+		Document.find({isDeleted: false},{isDeleted:1, privacy:1, uploadedBy:1}, null, function(err, docs){
 			
 			var elasticConnector = new Elastic(); // prepair elastic search connector to get document term vectors
 					
@@ -1182,23 +996,29 @@ recommender.post('/simpleTopNDebug', function(req,res){
 			// console.log("==========================================");
 			// console.log(L);
 			// console.log("==========================================");
-			// DEBUG
-			L = [];
-			L.push({_id : '57c0f436ce2ed398217eb87c', privacy : 'public'});
-			L.push({_id : '57c0fd53ce2ed398217eb884', privacy : 'public'});
-			L.push({_id : '57c0e043ce2ed398217eb874', privacy : 'public'});
-			L.push({_id : '57c0e31ace2ed398217eb876', privacy : 'public'});
+			console.log("length of L = " + L.length);
 			
 			var di  = null;
 			var dj  = null;
 			console.log("start processing");
-			
+			var proceedItems;
+			proceedItems = 0;
+			// L ← L - di;	
+			var stillProcessing;
+			stillProcessing = 0;
+			var itemsLookupSimilar = [];			
+			for (var kl = 0; kl < L.length; kl++ )
+			{
+				itemsLookupSimilar.push(L[kl]);
+			}
 			var similarResults = [];
-			//var timeOut = setTimeout(finalLookupSimilar, 1000);
+			var timeOut = setTimeout(finalLookupSimilar, 20000);
 			// for i = 1 to |L| do
 			function finalLookupSimilar() { 
-				//console.log('finalLookupSimilar() Done', similarResults); 
-				// clearTimeout(timeOut);
+				// console.log("final lookup similar");
+				// console.log('finalLookupSimilar() Done', similarResults); 
+				console.log("final proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
+				clearTimeout(timeOut);
 				//console.log("Start to collect result");			
 				if ( similarResults.length > 0 )
 				{
@@ -1213,30 +1033,33 @@ recommender.post('/simpleTopNDebug', function(req,res){
 					}
 					// console.log("working to collect result");				
 	
-					console.log("Before");
+					// console.log("Before");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					//sort R base on Dij i.e. Rank(R) based on 4ij;
 					R.sort(function(a, b) {
 						return ( ( a.sim > b.sim ) ? -1 : (( a.sim < b.sim ) ? 1 : 0) );
 					});
-					console.log("After");
+					// console.log("After");
 					// console.log("=============");
-					console.log(R)
+					// console.log(R)
 					// console.log("=============");
 					// return top-K element from R to recommends i.e. Recommend(Top-K of R)
 					
 					// return the document list as a complement part
 					var ids = [];
 					
-					if ( R.length <= K )
+					if ( R.length < K )
 					{
 						for (var idx = 0; idx < R.length; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc._id);
+							if ( ids.indexOf(R[idx].doc._id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc._id);
+							}
 						}
 					}
 					else
@@ -1244,9 +1067,12 @@ recommender.post('/simpleTopNDebug', function(req,res){
 						// extract top-K elements
 						for (var idx = 0; idx < K; idx++)
 						{
-							//console.log(R[idx]);
-							recommends.push(R[idx]);
-							ids.push(R[idx].doc._id);
+							if ( ids.indexOf(R[idx].doc._id) === -1 )
+							{
+								//console.log(R[idx]);
+								recommends.push(R[idx]);
+								ids.push(R[idx].doc._id);
+							}
 						}
 					}
 					
@@ -1305,231 +1131,250 @@ recommender.post('/simpleTopNDebug', function(req,res){
 						data: []
 					});
 				}
-			}
+			}			
 			
-			var proceedItems;
-			proceedItems = 0;
-			// L ← L - di;	
-			var stillProcessing;
-			stillProcessing = 0;
-			var itemsLookupSimilar = L;
-			itemsLookupSimilar.forEach(function(itemSim) 
+			console.log("before going into find similar object");
+			console.log("first proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
+			function seriesLookupSimilar(itemSim) 
 			{
-				if (itemSim == null ) return;
-				di = itemSim;
-				proceedItems += 1;
-				stillProcessing +=  1;		
-				
-				console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
-				// console.log("document id = " + di._id);	
-				// console.log("============== take di from L ============");
-				// console.log(di);
-				// console.log("------------------------------------------");
-				// console.log(L);
-				// console.log("==========================================");
-			
-				if ( di.privacy == 'undefined' )
+				if(typeof itemSim !== 'undefined') 
 				{
-					di.privacy = 'public';
-				}
+					console.log("item similar");
+					console.log(itemSim);
+					di = itemSim;
+					console.log("second proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);	
+					// console.log("document id = " + di._id);	
+					// console.log("============== take di from L ============");
+					// console.log(di);
+					// console.log("------------------------------------------");
+					// console.log(itemsLookupSimilar);
+					// console.log("==========================================");
 				
-				// console.log("document i");
-				// console.log("==========================================");
-				// console.log(di);
-				// console.log("------------------------------------------");
-
-				var objDi = JSON.parse(JSON.stringify(di));
-				var objData = {d1: objDi};
-				elasticConnector.getTermVectors(di._id, di.privacy, objData, function(resultTermsdi, lastdata){
-					var diData = resultTermsdi.data;
-					
-					var found = false;
-					if (diData.found == true )
+					if ( di.privacy == 'undefined' )
 					{
-						found = true;
+						di.privacy = 'public';
 					}
 					
-					if ( found )
-					{
-						// console.log("term vector of document i");
-						// console.log("==========================================");
-						// console.log(resultTermsdi);
-						// console.log("==========================================");			
-						// console.log(lastdata);						
-						// console.log("==========================================");	
-						// for j = 1 to |l| do
+					console.log("document i");
+					console.log("==========================================");
+					console.log(di);
+					console.log("------------------------------------------");
+
+					var objDi = JSON.parse(JSON.stringify(di));
+					var objData = {d1: objDi};
+					elasticConnector.getTermVectors(di._id, di.privacy, di.uploadedBy, objData, function(resultTermsdi, lastdata){
+						var diData = resultTermsdi.data;
 						
-						var diffResults = [];						
-						function finalFindMax() 
-						{ 
-							// console.log('finalFindMax() got result', diffResults); 
-							
-							var max = 0;
-							var result = null;
-							var res = null;
-							for (var i = 0; i < diffResults.length; i++)
-							{
-								res = diffResults[i];
-								if ( res.diff > max )
-								{
-									max = res.diff;
-									result = res;
-								}
-							}
-							
-							if ( result != null )
-							{
-								similarResults.push(result);											
-							}							
-							
-							//console.log('similar results now',similarResults);				
-							console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-							console.log("document id = " + lastdata.d1._id);
-							process.nextTick(function() {
-								stillProcessing -=  1;															
-													
-								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
-									finalLookupSimilar();
-								}		
-							});							
+						var found = false;
+						if (diData.found == true )
+						{
+							found = true;
 						}
 						
-						var itemsFindMax = l;
-						if ( itemsFindMax.length > 0 )
+						if ( found )
 						{
-							function series(itemFindMax) {
-								if(itemFindMax) 
+							// console.log("term vector of document i");
+							// console.log("==========================================");
+							// console.log(resultTermsdi);
+							// console.log("==========================================");			
+							// console.log(lastdata);						
+							// console.log("==========================================");	
+							// for j = 1 to |l| do
+							// console.log("found term vector of document i");
+							var diffResults = [];						
+							function finalFindMax() 
+							{ 
+								// console.log('finalFindMax() got result', diffResults); 
+								
+								var max = 0;
+								var result = null;
+								var res = null;
+								for (var i = 0; i < diffResults.length; i++)
 								{
-									dj = itemFindMax;
-									// console.log("get a document j from l");
-									// console.log("==========================================");
-									// console.log(dj);
-									// console.log("==========================================");
-
-									var privacy = "public";
-									if ( dj.privacy != null )
+									res = diffResults[i];
+									if ( res.diff > max )
 									{
-										privacy = dj.privacy;
+										max = res.diff;
+										result = res;
 									}
-									
-									// console.log("privacy = " + privacy);
-									
-									if (lastdata.d1._id != dj.mongo_id)
+								}
+								
+								if ( result != null )
+								{
+									similarResults.push(result);											
+								}							
+								
+								//console.log('similar results now',similarResults);
+								// setTimeout(function() {
+									// console.log("findmax before third proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+									// stillProcessing -=  1;									
+									// console.log("third proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+									// console.log("document id = " + lastdata.d1._id);
+									// if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
+										// finalLookupSimilar();
+									// }			
+								// }, 0);		
+								return seriesLookupSimilar(itemsLookupSimilar.shift());															
+							}						
+							
+							var itemsFindMax = [];
+							for (var kl = 0; kl < l.length; kl++ )
+							{
+								itemsFindMax.push(l[kl]);
+							}
+							// console.log("length of items find max = " + itemsFindMax.length);
+							if ( itemsFindMax.length > 0 )
+							{
+								console.log("start find max series");
+								function seriesFindMax(itemFindMax) {
+									console.log("item find max = " + itemFindMax);
+									if(typeof itemFindMax !== 'undefined') 
 									{
-										var objDj = JSON.parse(JSON.stringify(dj));
-										var objDiDj = {d1: lastdata.d1, d2: objDj, d1_vdata : diData};
-										elasticConnector.getTermVectors(dj.mongo_id, privacy, objDiDj, function(resultTermsdj, originaldocs){										
-											var djData = resultTermsdj.data;
-											var d1Data = originaldocs.d1_vdata;
-											
-											var found2 = false;								
-											if (djData.found == true )
-											{
-												found2 = true;
-											}							
-											
-											if ( found2 )
-											{
-												// console.log("==========================================");
-												// console.log("term vector of document i");
-												// console.log("..........................................");
-												// console.log(d1Data);
-												// console.log("------------------------------------------");	
-												// console.log("term vector of document j");
-												// console.log("..........................................");
-												// console.log(djData);
-												// console.log("==========================================");	
+										dj = itemFindMax;
+										console.log("get a document j from l");
+										console.log("==========================================");
+										console.log(dj);
+										console.log("==========================================");
+
+										var privacy = "public";
+										if ( dj.privacy != null )
+										{
+											privacy = dj.privacy;
+										}
+										
+										console.log("privacy = " + privacy);
+										
+										if (lastdata.d1._id != dj.mongo_id)
+										{
+											var objDj = JSON.parse(JSON.stringify(dj));
+											var objDiDj = {d1: lastdata.d1, d2: objDj, d1_vdata : diData};
+											console.log("get term vector for document j");
+											elasticConnector.getTermVectors(dj.mongo_id, privacy, dj.uploaded_user, objDiDj, function(resultTermsdj, originaldocs){										
+												var djData = resultTermsdj.data;
+												var d1Data = originaldocs.d1_vdata;
 												
-												var vectors = Utility.buildVectors2Doc(d1Data.term_vectors, djData.term_vectors);
-												// console.log("vectors to compare");
-												// console.log("=======================");
-												// console.log(vectors);
-												// console.log("=======================");
+												var found2 = false;								
+												if (djData.found == true )
+												{
+													found2 = true;
+												}							
 												
-												var Dij = comparer.consineSimilarity(vectors.d1, vectors.d2); // compare algorithm					
-												// console.log("Similarity");
-												// console.log("=======================");
-												// console.log("current diff = " + Dij);											
-												// console.log("=======================");		
+												if ( found2 )
+												{
+													// console.log("==========================================");
+													// console.log("term vector of document i");
+													// console.log("..........................................");
+													// console.log(d1Data);
+													// console.log("------------------------------------------");	
+													// console.log("term vector of document j");
+													// console.log("..........................................");
+													// console.log(djData);
+													// console.log("==========================================");	
+													
+													var vectors = Utility.buildVectors2Doc(d1Data.term_vectors, djData.term_vectors);
+													// console.log("vectors to compare");
+													// console.log("=======================");
+													// console.log(vectors);
+													// console.log("=======================");
+													
+													var Dij = comparer.consineSimilarity(vectors.d1, vectors.d2); // compare algorithm					
+													// console.log("Similarity");
+													// console.log("=======================");
+													// console.log("current diff = " + Dij);											
+													// console.log("=======================");		
+													
+													diffResults.push({d1 : originaldocs.d1, d2 : originaldocs.d2,  diff: Dij});													
+													
+													return seriesFindMax(itemsFindMax.shift());											
+												}	
+												else{
+													return seriesFindMax(itemsFindMax.shift());											
+												}
 												
-												diffResults.push({d1 : originaldocs.d1, d2 : originaldocs.d2,  diff: Dij});
-											}
-											return series(itemsFindMax.shift());											
-										},
-										function(err, lastdata){
-											console.log("Error happened");
-											console.log(err);											
-											return series(itemsFindMax.shift());											
-										});
+											},
+											function(err, lastdata){
+												console.log("Error happened");
+												console.log(err);											
+												return seriesFindMax(itemsFindMax.shift());											
+											});										
+										}
+										else
+										{
+											console.log("same item happened");
+											// if item i and item j is the same, count that the item i is evaluated and rejected.
+											return seriesFindMax(itemsFindMax.shift());										
+										}
+										// console.log("==========================================");
 									}
 									else
-									{
-										console.log("same item happened");
-										// if item i and item j is the same, count that the item i is evaluated and rejected.									
-										return series(itemsFindMax.shift());
-									}
-									// console.log("==========================================");								
+									{									
+										console.log("find Max");
+										return finalFindMax();
+									}								  
 								}
-								else
-								{						
-									console.log("find Max");
-									return finalFindMax();
-								}								  
+								return seriesFindMax(itemsFindMax.shift());
 							}
-							series(itemsFindMax.shift());
+							else
+							{							
+								console.log("no item happened");
+								
+								// setTimeout(function() {
+									// stillProcessing -=  1;	
+														
+									// console.log("forth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+									// console.log("document id = " + lastdata.d1._id);	
+									
+									// if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
+										// finalLookupSimilar();
+									// }
+								// }, 0);	
+								return seriesLookupSimilar(itemsLookupSimilar.shift());															
+							}
 						}
 						else
-						{							
-							console.log("no item happened");
-							
-							process.nextTick(function() {
-								stillProcessing -=  1;	
-								console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-								console.log("document id = " + lastdata.d1._id);	
-								
-								if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
-									finalLookupSimilar();
-								}
-							});														
+						{					
+							console.log("no term vector happened");
+			
+							// setTimeout(function() {
+								// stillProcessing -=  1;	
+														
+								// console.log("fifth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+								// console.log("document id = " + lastdata.d1._id);	
+								// if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
+									// finalLookupSimilar();
+								// }
+							// }, 0);	
+							return seriesLookupSimilar(itemsLookupSimilar.shift());															
 						}
-					}
-					else
-					{					
-						console.log("no term vector happened");
-		
-						process.nextTick(function() {
-							stillProcessing -=  1;	
-							console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-							console.log("document id = " + lastdata.d1._id);	
-							if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
-								finalLookupSimilar();
-							}
-						});							
+					}, 
+					function(err, lastdata){					
+						console.log(err);
+						// res.json('{"result":"Failed"}');		
+						console.log("term vector error happened");					
 						
-					}					
-				}, 
-				function(err, lastdata){					
-					console.log(err);
-					// res.json('{"result":"Failed"}');			
-					console.log("term vector error happened");					
-					
-					process.nextTick(function() {
-						stillProcessing -=  1;	
-						console.log("proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
-						console.log("document id = " + lastdata.d1._id);	
-						if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
-							finalLookupSimilar();
-						}					
-					});				
-				});
-				
-				// console.log("==========================================");
-	
-			});
-
+						// setTimeout(function() {
+							// stillProcessing -=  1;	
+							
+							// console.log("sixth proceed Items results = " + proceedItems + " and items = " + itemsLookupSimilar.length + " - item processing = " + stillProcessing);
+							// console.log("document id = " + lastdata.d1._id);	
+							// if(proceedItems == itemsLookupSimilar.length && stillProcessing <= 0) {
+								// finalLookupSimilar();
+							// }
+						// }, 0);	
+						return seriesLookupSimilar(itemsLookupSimilar.shift());	
+					});					
+					// console.log("==========================================");					
+				} 
+				else {
+					return finalLookupSimilar();
+				}
+			}
+			seriesLookupSimilar(itemsLookupSimilar.shift());
+						
 		});
 	});
 	
 });
+
 
 module.exports = recommender;

@@ -10,6 +10,7 @@ var DocumentSchema   = new schema({
 	publisher: String,
     abstract: String,
 	keywords: String,
+	uploadedBy: {ref: "User", type: mongoose.Schema.Types.ObjectId},
 	uploadedUser: String,
 	uploadedDate: String,
     authors: String,

@@ -329,7 +329,7 @@ elastic.deleteUser = function(user_id, successCallback, errorCallback)
 
 // http://localhost:9200/doclib_public/Document/57c0fa33ce2ed398217eb87f/_termvectors?fields=abstract,keywords,title&offsets=false&positions=false&term_statistics=true&field_statistics=true&pretty=true
 // get Term Vectors of a document
-elastic.getTermVectors = function(doc_id, privacy, lastdata, successCallback, errorCallback)
+elastic.getTermVectors = function(doc_id, privacy, routing_user_id, lastdata, successCallback, errorCallback)
 {
 	if ( privacy == 'undefined' )
 	{
@@ -339,7 +339,7 @@ elastic.getTermVectors = function(doc_id, privacy, lastdata, successCallback, er
 	var options = {
 		host: config.searchengine.HOST,
 		port: config.searchengine.PORT,
-		path: '/doclib_' + privacy + '/Document/' + doc_id + '/_termvectors?fields=abstract,keywords,title&offsets=false&positions=false&term_statistics=true&field_statistics=true',
+		path: '/doclib_' + privacy + '/Document/' + doc_id + '/_termvectors?fields=abstract,keywords,title&offsets=false&positions=false&term_statistics=true&field_statistics=true&routing=' + routing_user_id,
 		method: 'GET'
 	};
 	//console.log("==========Get Term Vectors of Documents =========");
@@ -380,7 +380,7 @@ elastic.getTermVectors = function(doc_id, privacy, lastdata, successCallback, er
 		}
 	}); 
 
-	httpreq.setTimeout(500); 
+	httpreq.setTimeout(3000); 
 	// No body data
 	httpreq.end();	  
 }

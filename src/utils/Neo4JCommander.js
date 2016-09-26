@@ -73,7 +73,7 @@ commander.createDocumentNode = function(doc, callbackDone)
 	if ( bDebug ) id = doc.mongo_id;
 	console.log("document_id : " + id);
 	
-	db.insertNode({mongo_id: id, privacy : doc.privacy}, config.node_type.DOCUMENT, function(err, node) { 
+	db.insertNode({mongo_id: id, privacy : doc.privacy, uploaded_user: doc.uploadedBy}, config.node_type.DOCUMENT, function(err, node) { 
 		if (err)
 		{
 			console.log(err);

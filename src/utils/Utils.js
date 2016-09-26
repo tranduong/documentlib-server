@@ -60,151 +60,184 @@ utils.buildVectors2Doc = function (doc1_termsVector, doc2_termsVector){
 	var doc1_vector = [];
 	var doc2_vector = [];
 	
+	// console.log("build titles attributes for both");
 	// map attribute from doc1 to doc2
 	// title
-	for(var key in doc1_termsVector.title.terms)
+	for(var key in doc1_termsVector["title"].terms)
 	{
-		if(doc1_termsVector.title.terms.hasOwnProperty(key))
+		if(doc1_termsVector["title"].terms.hasOwnProperty(key))
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
+				doc1_vector[strKey] = [];
 			}
-			doc1_vector[key].push(doc1_termsVector.title.terms[key]);
-			
-			if(doc2_termsVector.title.terms.hasOwnProperty(key))
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			// console.log("key = " + strKey);
+			// console.log("value = " + doc1_termsVector["title"].terms[key]);
+			// console.log("doc vector = " + doc1_vector[strKey]);
+			doc1_vector[strKey].push(doc1_termsVector["title"].terms[key]);
+			if(doc2_termsVector["title"].terms.hasOwnProperty(key))
 			{				
-				doc2_vector[key].push(doc2_termsVector.title.terms[key]);
+				doc2_vector[strKey].push(doc2_termsVector["title"].terms[key]);
 			}
 			else
 			{
 				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc2_vector[key].push(no_item);
+				doc2_vector[strKey].push(no_item);
 			}
-			
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
-	
+
+	// console.log("build abstracts attributes for both");
 	// abstract
-	for(var key in doc1_termsVector.abstract.terms)
+	for(var key in doc1_termsVector["abstract"].terms)
 	{
-		if(doc1_termsVector.abstract.terms.hasOwnProperty(key))
+		if(doc1_termsVector["abstract"].terms.hasOwnProperty(key))
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
+				doc1_vector[strKey] = [];
 			}
-			doc1_vector[key].push(doc1_termsVector.abstract.terms[key]);
-			
-			if(doc2_termsVector.abstract.terms.hasOwnProperty(key))
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			// console.log("key = " + strKey);
+			// console.log("value = " + doc1_termsVector["abstract"].terms[key]);
+			// console.log("doc vector = " + doc1_vector[strKey]);
+			doc1_vector[strKey].push(doc1_termsVector["abstract"].terms[key]);
+			if(doc2_termsVector["abstract"].terms.hasOwnProperty(key))
 			{				
-				doc2_vector[key].push(doc2_termsVector.abstract.terms[key]);
+				doc2_vector[strKey].push(doc2_termsVector["abstract"].terms[key]);
 			}
 			else
 			{
 				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc2_vector[key].push(no_item);
+				doc2_vector[strKey].push(no_item);
 			}
-			
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
 	
+	// console.log("build keywords attributes for both");
 	// keywords
-	for(var key in doc1_termsVector.keywords.terms)
+	for(var key in doc1_termsVector["keywords"].terms)
 	{
-		if(doc1_termsVector.keywords.terms.hasOwnProperty(key))
+		if(doc1_termsVector["keywords"].terms.hasOwnProperty(key))
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
+				doc1_vector[strKey] = [];
 			}
-			doc1_vector[key].push(doc1_termsVector.keywords.terms[key]);
-			
-			if(doc2_termsVector.keywords.terms.hasOwnProperty(key))
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			// console.log("key = " + strKey);
+			// console.log("value = " + doc1_termsVector["keywords"].terms[key]);
+			// console.log("doc vector = " + doc1_vector[strKey]);
+			doc1_vector[strKey].push(doc1_termsVector["keywords"].terms[key]);
+			if(doc2_termsVector["keywords"].terms.hasOwnProperty(key))
 			{				
-				doc2_vector[key].push(doc2_termsVector.keywords.terms[key]);
+				doc2_vector[strKey].push(doc2_termsVector["keywords"].terms[key]);
 			}
 			else
 			{
 				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc2_vector[key].push(no_item);
+				doc2_vector[strKey].push(no_item);
 			}
-			
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
-	
+
+	// console.log("map titles attributes from doc2 to doc1");	
 	// map the remain attribute existed in doc2 but not in doc1
 	// title
-	for(var key in doc2_termsVector.title.terms)
-	{
-		if(doc1_termsVector.title.terms.hasOwnProperty(key) == false)
+	for(var key in doc2_termsVector["title"].terms)
+	{		
+		if(doc1_termsVector["title"].terms.hasOwnProperty(key) == false)
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
-				
-				if(doc2_termsVector.title.terms.hasOwnProperty(key))
-				{				
-					doc2_vector[key].push(doc2_termsVector.title.terms[key]);
-				}
-				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc1_vector[key].push(no_item);
+				doc1_vector[strKey] = [];
 			}
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+			
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			
+			if(doc2_termsVector["title"].terms.hasOwnProperty(key))
+			{				
+				doc2_vector[strKey].push(doc2_termsVector["title"].terms[key]);
+			}
+			var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
+			doc1_vector[strKey].push(no_item);
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
-	
+
+	// console.log("map abstract attributes from doc2 to doc 1");	
 	// abstract
-	for(var key in doc2_termsVector.abstract.terms)
-	{
-		if(doc1_termsVector.abstract.terms.hasOwnProperty(key) == false)
+	for(var key in doc2_termsVector["abstract"].terms)
+	{		
+		if(doc1_termsVector["abstract"].terms.hasOwnProperty(key) == false)
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
-				
-				if(doc2_termsVector.abstract.terms.hasOwnProperty(key))
-				{				
-					doc2_vector[key].push(doc2_termsVector.abstract.terms[key]);
-				}
-				
-				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc1_vector[key].push(no_item);
-			}	
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+				doc1_vector[strKey] = [];
+			}
+			
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			
+			if(doc2_termsVector["abstract"].terms.hasOwnProperty(key))
+			{				
+				doc2_vector[strKey].push(doc2_termsVector["abstract"].terms[key]);
+			}
+			var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
+			doc1_vector[strKey].push(no_item);
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
 	
+	// console.log("map keywords attributes from doc2 to doc 1");	
 	// keywords
-	for(var key in doc2_termsVector.keywords.terms)
-	{
-		if(doc1_termsVector.keywords.terms.hasOwnProperty(key) == false)
+	for(var key in doc2_termsVector["keywords"].terms)
+	{		
+		if(doc1_termsVector["keywords"].terms.hasOwnProperty(key) == false)
 		{
-			if(typeof doc1_vector[key] == 'undefined')
+			var strKey = "key_" + key;
+			if(typeof doc1_vector[strKey] == 'undefined')
 			{
-				doc1_vector[key] = [];
-				doc2_vector[key] = [];
-				if(doc2_termsVector.keywords.terms.hasOwnProperty(key))
-				{				
-					doc2_vector[key].push(doc2_termsVector.keywords.terms[key]);
-				}			
-				
-				var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
-				doc1_vector[key].push(no_item);
-				
-			}			
-			// console.log("key: " + key + ", doc1: " + doc1_vector[key] + ", doc2: " + doc2_vector[key] + "\r\n");
+				doc1_vector[strKey] = [];
+			}
+			
+			if(typeof doc2_vector[strKey] == 'undefined')
+			{
+				doc2_vector[strKey] = [];
+			}
+			
+			if(doc2_termsVector["keywords"].terms.hasOwnProperty(key))
+			{				
+				doc2_vector[strKey].push(doc2_termsVector["keywords"].terms[key]);
+			}
+			var no_item = { doc_freq: 0, ttf: 0, term_freq: 0 };
+			doc1_vector[strKey].push(no_item);
+			// console.log("key: " + key + ", doc1: " + doc1_vector[strKey] + ", doc2: " + doc2_vector[strKey] + "\r\n");
 		}
 	}
-	
 	// console.log(doc1_vector);
 	// console.log("=====================");
 	// console.log(doc2_vector);	

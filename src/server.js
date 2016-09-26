@@ -336,6 +336,7 @@ app.post('/uploadDoc',Utility.ensureAuthorized, function(req, res) {
 					docModel.category	   = fields.category;
 					docModel.privacy   	   = fields.privacy;
 					docModel.isDeleted	   = false;
+					docModel.uploadedBy	   = user._id;
 					//console.log("1. demomode: " + fields.demomode);
 					docModel.save(function(err, doc1) {
 						if (err)
@@ -363,7 +364,8 @@ app.post('/uploadDoc',Utility.ensureAuthorized, function(req, res) {
 									// Insert information of the document to elastic server
 									var elasticConnector = new Elastic();
 									//console.log("2. demomode: " + fields.demomode);
-									elasticConnector.uploadDocument(doc1, fields.demomode, user._id, function(success){
+									var demomode = '1';
+									elasticConnector.uploadDocument(doc1, demomode, user._id, function(success){
 										//console.log("Elastic Server response : " + success );
 									}, function(err){
 										//console.log("Elastic Server response : " + err );
