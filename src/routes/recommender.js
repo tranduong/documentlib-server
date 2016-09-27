@@ -18,7 +18,7 @@ recommender.use(function timeLog(req, res, next) {
 });
 
 /////////////////////// RECOMMENDATION ALGORITHM IMPLEMENTATION PART //////////////////////////////////////////
-recommender.post('/recommendTopN', Utility.ensureAuthorized,function(req,res){
+recommender.post('/recommendTopN', Utility.ensureAuthorized, function(req,res){
 	//console.log("Recommend Top N");
 	//console.log(req.body);
 	res.json('{"result":"Success"}');
@@ -42,41 +42,6 @@ function printPrototype(obj, i) {
         }
     }
 }
-
-/* recommender.post('/testPromise', function(req,res){
-
-});
-
-recommender.post('/testForLoop', function(req,res){
-	// repeater(i) {
-	// if( i < length ) {
-		 // asyncwork( function(){
-		   // repeater( i + 1 )
-		 // })
-	  // }
-	// }
-	// repeater(0)
-});
-
-recommender.post('/testForLoop', function(req,res){
-		// var FinalResult = "";
-
-		// WaterfallOver(paths, function(path, report) {
-			// fs.readFile(path, 'utf8', function(err, data) {
-
-					// here we wait for random time
-					// setTimeout(function() {
-						// FinalResult += data + " ";
-
-						// report();
-					// }, Math.floor(Math.random() * 10));
-
-				// });
-		// }, function() {
-			// console.log(FinalResult);
-		// });
-});
- */
 
 /* ****************************************************************
 	This function is the implementation of a simple content-based algorithm
@@ -102,7 +67,7 @@ recommender.post('/testForLoop', function(req,res){
 	Recommend(Top-K of R);
 	end
 ****************************************************************** */
-recommender.post('/simpleTopN', Utility.ensureAuthorized,function(req,res){
+recommender.post('/simpleTopN', Utility.ensureAuthorized, function(req,res){
 // recommender.post('/simpleTopN', function(req,res){
 	//console.log("Recommend Top N");
 	//console.log(req.body);
@@ -519,13 +484,13 @@ recommender.post('/simpleTopN', Utility.ensureAuthorized,function(req,res){
 	
 });
 
-recommender.post('/topicTopN', Utility.ensureAuthorized,function(req,res){
+recommender.post('/topicTopN', Utility.ensureAuthorized, function(req,res){
 	//console.log("Recommend Top N");
 	//console.log(req.body);
 	res.json('{"result":"Success"}');
 });
 
-recommender.post('/socialTopN', function(req,res){
+recommender.post('/socialTopN', Utility.ensureAuthorized, function(req,res){
 	//console.log("Recommend Top N");
 	// console.log(req.body);
 	var u 		= req.body.user_id; 	// User u
@@ -948,7 +913,7 @@ recommender.post('/socialTopicTopN', Utility.ensureAuthorized,function(req,res){
 	res.json('{"result":"Success"}');
 });
 /////////////////////// RECOMMENDATION ALGORITHM IMPLEMENTATION PART //////////////////////////////////////////
-recommender.post('/simpleTopNDebug', function(req,res){
+recommender.post('/simpleTopNDebug', Utility.ensureAuthorized, function(req,res){
 	//console.log("Recommend Top N");
 	console.log(req.body);
 	var u 		= req.body.user_id; 	// User u
